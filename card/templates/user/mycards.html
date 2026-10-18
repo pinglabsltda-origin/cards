@@ -725,7 +725,7 @@ async function salvarDeck() {
     btn.textContent = 'SALVANDO...';
 
     try {
-        const data = await postJSON('/api/save-deck/', {
+        const data = await postJSON("{% url 'save_deck' %}", {
             deck: state.deck,
             match_id: window.MATCH_ID || null
         });
