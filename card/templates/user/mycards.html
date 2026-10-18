@@ -1,0 +1,790 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}OLYMPUS — Coleção{% endblock %}
+
+{% block page_css %}
+<style>
+    /* ==================== LAYOUT DA COLEÇÃO ==================== */
+    .collection-layout {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 24px;
+        padding: 24px 40px 80px;
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 1300px) {
+        .collection-layout {
+            grid-template-columns: 1fr;
+            padding: 20px;
+        }
+    }
+
+    /* ==================== FILTROS ==================== */
+    .filters-bar {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        padding: 18px 22px;
+        background: linear-gradient(180deg, rgba(30,18,10,0.9), rgba(15,9,4,0.9));
+        border: 1px solid rgba(201,165,88,0.35);
+        border-radius: 12px;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.05),
+            0 8px 25px rgba(0,0,0,0.6);
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 200px;
+        background: rgba(0,0,0,0.5);
+        border: 1px solid rgba(201,165,88,0.35);
+        border-radius: 8px;
+        padding: 12px 16px 12px 42px;
+        color: var(--stone);
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 15px;
+        transition: all 0.25s;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c9a558' stroke-width='2'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.35-4.35'/></svg>");
+        background-repeat: no-repeat;
+        background-position: 14px center;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--gold-bright);
+        box-shadow: 0 0 0 3px rgba(232,200,120,0.15), 0 0 20px rgba(232,200,120,0.3);
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 6px;
+        padding: 4px;
+        background: rgba(0,0,0,0.4);
+        border-radius: 8px;
+        border: 1px solid rgba(201,165,88,0.25);
+    }
+
+    .filter-btn {
+        font-family: 'Cinzel', serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        padding: 8px 14px;
+        background: transparent;
+        border: none;
+        color: var(--stone-dark);
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .filter-btn:hover { color: var(--gold-bright); }
+
+    .filter-btn.active {
+        background: linear-gradient(180deg, #f4d97a, #d4af37 50%, #a8801c);
+        color: var(--ink);
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.5),
+            0 2px 8px rgba(0,0,0,0.5),
+            0 0 15px rgba(232,200,120,0.4);
+    }
+
+    /* ==================== GRADE DE CARTAS ==================== */
+    .cards-section { min-width: 0; }
+
+    .cards-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .section-title {
+        font-family: 'Cinzel', serif;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: 3px;
+        color: var(--gold-bright);
+        text-shadow: 0 0 15px rgba(232,200,120,0.4);
+    }
+
+    .card-count {
+        font-family: 'Cinzel', serif;
+        font-size: 12px;
+        color: var(--stone-dark);
+        letter-spacing: 2px;
+    }
+
+    .card-count strong { color: var(--gold-bright); font-size: 14px; }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 14px;
+        padding: 4px;
+    }
+
+    /* ==================== ESTADOS ESPECÍFICOS DA COLEÇÃO ==================== */
+    .game-card.locked {
+        filter: grayscale(1) brightness(0.4);
+        cursor: not-allowed;
+    }
+
+    .game-card.locked::after {
+        content: '🔒';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 42px;
+        z-index: 10;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+    }
+
+    .game-card.locked:hover {
+        transform: none;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.8);
+    }
+
+    .game-card .deck-count {
+        position: absolute;
+        top: 50%;
+        right: -6px;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #a5d6a7, #2e7d32 55%, #1b5e20);
+        border: 2px solid #1b5e20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Cinzel', serif;
+        font-weight: 900;
+        font-size: 16px;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        box-shadow:
+            inset 0 -3px 5px rgba(0,0,0,0.4),
+            inset 0 2px 4px rgba(255,255,255,0.5),
+            0 3px 8px rgba(0,0,0,0.8),
+            0 0 20px rgba(102,187,106,0.7);
+        z-index: 15;
+        pointer-events: none;
+    }
+
+    .game-card.in-deck {
+        border-color: #66bb6a;
+        box-shadow:
+            0 6px 18px rgba(0,0,0,0.8),
+            0 0 25px rgba(102,187,106,0.6),
+            inset 0 0 0 1px rgba(255,255,255,0.4);
+    }
+
+    /* ==================== PAINEL DO DECK ==================== */
+    .deck-panel {
+        position: sticky;
+        top: 100px;
+        align-self: start;
+        max-height: calc(100vh - 140px);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 22px;
+        background: linear-gradient(180deg, rgba(30,18,10,0.95), rgba(15,9,4,0.95));
+        border: 1px solid rgba(201,165,88,0.4);
+        border-radius: 14px;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.05),
+            0 12px 40px rgba(0,0,0,0.8);
+    }
+
+    .deck-header {
+        text-align: center;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(201,165,88,0.3);
+    }
+
+    .deck-title {
+        font-family: 'Cinzel', serif;
+        font-weight: 900;
+        font-size: 18px;
+        letter-spacing: 4px;
+        color: var(--gold-bright);
+        text-shadow: 0 0 20px rgba(232,200,120,0.5);
+    }
+
+    .deck-counter {
+        font-family: 'Cinzel', serif;
+        font-size: 28px;
+        font-weight: 900;
+        margin-top: 6px;
+        color: var(--stone);
+        letter-spacing: 2px;
+    }
+
+    .deck-counter strong { color: var(--gold-bright); font-size: 32px; }
+
+    .deck-counter .deck-min {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: var(--stone-dark);
+    }
+
+    .deck-counter.over-limit strong { color: #ff8a80; }
+    .deck-counter.complete strong {
+        color: #a5d6a7;
+        text-shadow: 0 0 20px rgba(102,187,106,0.6);
+    }
+
+    /* Curva de mana */
+    .mana-curve {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 70px;
+        padding: 10px 4px;
+        gap: 4px;
+        background: rgba(0,0,0,0.4);
+        border-radius: 8px;
+        border: 1px solid rgba(201,165,88,0.2);
+    }
+
+    .curve-bar {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 2px;
+        height: 100%;
+    }
+
+    .curve-bar-fill {
+        width: 100%;
+        background: linear-gradient(180deg, #4fc3f7, #1565c0);
+        border-radius: 3px 3px 0 0;
+        min-height: 2px;
+        transition: height 0.3s ease;
+        box-shadow: 0 0 6px rgba(79,195,247,0.6);
+    }
+
+    .curve-bar-label {
+        font-family: 'Cinzel', serif;
+        font-size: 10px;
+        color: var(--stone-dark);
+    }
+
+    /* Lista do deck */
+    .deck-list {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-right: 6px;
+        min-height: 200px;
+        max-height: 320px;
+    }
+
+    .deck-list::-webkit-scrollbar { width: 5px; }
+    .deck-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 3px; }
+    .deck-list::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+    .deck-list::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+    .deck-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(201,165,88,0.2);
+        border-left: 3px solid var(--gold-dark);
+        border-radius: 6px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .deck-item:hover {
+        background: rgba(201,165,88,0.1);
+        border-left-color: var(--gold-bright);
+        transform: translateX(3px);
+    }
+
+    .deck-item-cost {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #8fd4ff 0%, #2196f3 50%, #0d3a6b 100%);
+        border: 1px solid #0d3a6b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Cinzel', serif;
+        font-weight: 900;
+        font-size: 12px;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .deck-item-emoji { font-size: 20px; flex-shrink: 0; }
+
+    .deck-item-name {
+        flex: 1;
+        font-family: 'Cinzel', serif;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--stone);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .deck-item-qty {
+        font-family: 'Cinzel', serif;
+        font-weight: 900;
+        font-size: 13px;
+        color: var(--gold-bright);
+        min-width: 22px;
+        text-align: center;
+    }
+
+    .deck-item-remove {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(198,40,40,0.3);
+        border: 1px solid #6b0f0f;
+        color: #ff8a80;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .deck-item-remove:hover {
+        background: #c62828;
+        color: #fff;
+        transform: scale(1.15);
+    }
+
+    .empty-deck {
+        text-align: center;
+        padding: 30px 10px;
+        color: var(--stone-dark);
+        font-style: italic;
+        font-size: 14px;
+        opacity: 0.6;
+    }
+
+    /* Ações */
+    .deck-actions {
+        display: flex;
+        gap: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(201,165,88,0.3);
+    }
+
+    .deck-actions .btn { flex: 1; padding: 14px 18px; }
+
+    /* ==================== RESPONSIVO ==================== */
+    @media (max-width: 900px) {
+        .filters-bar { padding: 14px; gap: 10px; }
+        .cards-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .deck-panel { position: static; max-height: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ==================== TÍTULO ==================== -->
+<div class="page-title-section">
+    <button class="btn-back" onclick="window.location.href='/'">VOLTAR</button>
+    <div class="page-title">COLEÇÃO</div>
+    <div class="page-subtitle-1">TEMPLO DAS RELÍQUIAS</div>
+    <div class="page-subtitle-2">Monte seu deck e revele suas cartas conquistadas</div>
+</div>
+
+<!-- ==================== LAYOUT ==================== -->
+<div class="collection-layout">
+
+    <!-- ==================== FILTROS ==================== -->
+    <div class="filters-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Buscar carta...">
+
+        <div class="filter-group" id="filterType">
+            <button class="filter-btn active" data-value="all">TODAS</button>
+            <button class="filter-btn" data-value="Deus">DEUSES</button>
+            <button class="filter-btn" data-value="Herói">HERÓIS</button>
+            <button class="filter-btn" data-value="Lenda">LENDAS</button>
+        </div>
+
+        <div class="filter-group" id="filterCost">
+            <button class="filter-btn active" data-value="all">CUSTO</button>
+            <button class="filter-btn" data-value="0-2">0-2</button>
+            <button class="filter-btn" data-value="3-4">3-4</button>
+            <button class="filter-btn" data-value="5-6">5-6</button>
+            <button class="filter-btn" data-value="7+">7+</button>
+        </div>
+    </div>
+
+    <!-- ==================== GRADE DE CARTAS ==================== -->
+    <section class="cards-section">
+        <div class="cards-header">
+            <div class="section-title">📚 SUA COLEÇÃO</div>
+            <div class="card-count">
+                Mostrando <strong id="visibleCount">0</strong> de <strong id="totalCount">0</strong>
+            </div>
+        </div>
+        <div class="cards-grid" id="cardsGrid"></div>
+    </section>
+
+    <!-- ==================== PAINEL DO DECK ==================== -->
+    <aside class="deck-panel">
+        <div class="deck-header">
+            <div class="deck-title">⚔️ SEU DECK</div>
+            <div class="deck-counter" id="deckCounter">
+                <strong id="deckCount">0</strong> / 30 <span class="deck-min">mín. 20</span>
+            </div>
+        </div>
+
+        <div>
+            <div style="font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; color: var(--stone-dark); text-align: center; margin-bottom: 6px;">CURVA DE ÍCOR</div>
+            <div class="mana-curve" id="manaCurve"></div>
+        </div>
+
+        <div class="deck-list" id="deckList">
+            <div class="empty-deck">Nenhuma carta no deck ainda.<br>Clique nas cartas para adicionar.</div>
+        </div>
+
+        <div class="deck-actions">
+            <button class="btn btn-secondary" onclick="limparDeck()">LIMPAR</button>
+            <button class="btn btn-primary" id="saveDeckBtn" onclick="salvarDeck()">SALVAR</button>
+        </div>
+    </aside>
+
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+/* ============================================================
+   DADOS DO DJANGO
+============================================================ */
+// ⚠️ Em produção, o Django injeta:
+// const CARDS_DB = {{ all_cards_json|safe }};
+// const CURRENT_DECK = {{ current_deck_json|safe }};
+
+// ===== FALLBACK local (remova depois) =====
+const CARDS_DB = window.CARDS_DB ?? [
+    { id:'hoplita',    nome:'Hoplita',    tipo:'Herói', custo:1, atk:1, hp:2, icone:'🛡️', raridade:'comum',    coletadas:2 },
+    { id:'arqueiro',   nome:'Arqueiro',   tipo:'Herói', custo:2, atk:2, hp:1, icone:'🏹', raridade:'comum',    coletadas:2 },
+    { id:'sacerdote',  nome:'Sacerdote',  tipo:'Herói', custo:2, atk:1, hp:4, icone:'📿', raridade:'comum',    coletadas:1 },
+    { id:'cavaleiro',  nome:'Cavaleiro',  tipo:'Herói', custo:3, atk:3, hp:3, icone:'🐎', raridade:'comum',    coletadas:2 },
+    { id:'centauro',   nome:'Centauro',   tipo:'Lenda', custo:3, atk:2, hp:4, icone:'🐴', raridade:'comum',    coletadas:1 },
+    { id:'leonidas',   nome:'Leônidas',   tipo:'Herói', custo:4, atk:4, hp:5, icone:'🛡️', raridade:'rara',     coletadas:2 },
+    { id:'minotauro',  nome:'Minotauro',  tipo:'Lenda', custo:5, atk:5, hp:5, icone:'🐂', raridade:'rara',     coletadas:2 },
+    { id:'medusa',     nome:'Medusa',     tipo:'Lenda', custo:4, atk:3, hp:4, icone:'🐍', raridade:'rara',     coletadas:1 },
+    { id:'pegaso',     nome:'Pégaso',     tipo:'Lenda', custo:3, atk:3, hp:2, icone:'🦄', raridade:'rara',     coletadas:2 },
+    { id:'alexander',  nome:'Alexander',  tipo:'Herói', custo:5, atk:5, hp:4, icone:'⚔️', raridade:'rara',     coletadas:1 },
+    { id:'athena',     nome:'Atena',      tipo:'Deus',  custo:6, atk:4, hp:7, icone:'🦉', raridade:'epica',    coletadas:1 },
+    { id:'ares',       nome:'Ares',       tipo:'Deus',  custo:6, atk:6, hp:5, icone:'⚔️', raridade:'epica',    coletadas:1 },
+    { id:'hades',      nome:'Hades',      tipo:'Deus',  custo:7, atk:5, hp:7, icone:'💀', raridade:'epica',    coletadas:1 },
+    { id:'poseidon',   nome:'Poseidon',   tipo:'Deus',  custo:7, atk:5, hp:8, icone:'🌊', raridade:'epica',    coletadas:1 },
+    { id:'zeus',       nome:'Zeus',       tipo:'Deus',  custo:8, atk:7, hp:8, icone:'⚡', raridade:'lendaria', coletadas:1 },
+    { id:'hercules',   nome:'Hércules',   tipo:'Herói', custo:7, atk:7, hp:7, icone:'💪', raridade:'lendaria', coletadas:1 },
+    { id:'fenix',      nome:'Fênix',      tipo:'Lenda', custo:7, atk:6, hp:5, icone:'🔥', raridade:'lendaria', coletadas:1 },
+    // Bloqueadas (para demo)
+    { id:'cronos',  nome:'Cronos', tipo:'Deus',  custo:9,  atk:8, hp:9, icone:'⏳', raridade:'lendaria', coletadas:0 },
+    { id:'tita',    nome:'Titã',   tipo:'Lenda', custo:10, atk:9, hp:9, icone:'🗿', raridade:'lendaria', coletadas:0 },
+];
+
+const CURRENT_DECK = window.CURRENT_DECK ?? {};
+
+/* ============================================================
+   ESTADO
+============================================================ */
+const state = {
+    deck: { ...CURRENT_DECK },
+    filtroTipo: 'all',
+    filtroCusto: 'all',
+    busca: '',
+    MAX_DECK: 30,
+    MIN_DECK: 20,
+    MAX_COPIAS: 2,
+};
+
+/* ============================================================
+   RENDERIZAÇÃO — CARTAS
+============================================================ */
+function renderCartas() {
+    const grid = document.getElementById('cardsGrid');
+    grid.innerHTML = '';
+
+    const filtradas = CARDS_DB.filter(c => {
+        if (state.filtroTipo !== 'all' && c.tipo !== state.filtroTipo) return false;
+
+        if (state.filtroCusto !== 'all') {
+            if (state.filtroCusto === '7+') {
+                if (c.custo < 7) return false;
+            } else {
+                const [min, max] = state.filtroCusto.split('-').map(Number);
+                if (c.custo < min || c.custo > max) return false;
+            }
+        }
+
+        if (state.busca && !c.nome.toLowerCase().includes(state.busca.toLowerCase())) return false;
+
+        return true;
+    });
+
+    filtradas.forEach(carta => {
+        const bloqueada = carta.coletadas === 0;
+        const qtdNoDeck = state.deck[carta.id] || 0;
+
+        const el = document.createElement('div');
+        el.className = 'game-card';
+        el.dataset.rarity = carta.raridade;
+        el.dataset.id = carta.id;
+
+        if (bloqueada) el.classList.add('locked');
+        if (qtdNoDeck > 0) el.classList.add('in-deck');
+
+        el.innerHTML = `
+            <div class="card-cost">${carta.custo}</div>
+            <div class="card-portrait">${carta.icone}</div>
+            <div class="card-name">${carta.nome}</div>
+            <div class="card-type">${carta.tipo}</div>
+            <div class="card-stats">
+                <div class="stat-badge atk">${carta.atk}</div>
+                <div class="stat-badge hp">${carta.hp}</div>
+            </div>
+            ${qtdNoDeck > 0 ? `<div class="deck-count">${qtdNoDeck}</div>` : ''}
+        `;
+
+        if (!bloqueada) {
+            el.addEventListener('click', () => toggleCartaNoDeck(carta));
+        } else {
+            el.addEventListener('click', () => {
+                mostrarToast(`🔒 ${carta.nome} ainda não foi desbloqueada!`, 'error');
+            });
+        }
+
+        grid.appendChild(el);
+    });
+
+    document.getElementById('visibleCount').textContent = filtradas.length;
+    document.getElementById('totalCount').textContent = CARDS_DB.length;
+}
+
+/* ============================================================
+   RENDERIZAÇÃO — DECK
+============================================================ */
+function renderDeck() {
+    const list = document.getElementById('deckList');
+    list.innerHTML = '';
+
+    const entradas = Object.entries(state.deck).filter(([_, qty]) => qty > 0);
+
+    if (entradas.length === 0) {
+        list.innerHTML = '<div class="empty-deck">Nenhuma carta no deck ainda.<br>Clique nas cartas para adicionar.</div>';
+    } else {
+        const ordenadas = entradas
+            .map(([id, qty]) => ({ carta: CARDS_DB.find(c => c.id === id), qty }))
+            .filter(e => e.carta)
+            .sort((a, b) => a.carta.custo - b.carta.custo || a.carta.nome.localeCompare(b.carta.nome));
+
+        ordenadas.forEach(({ carta, qty }) => {
+            const item = document.createElement('div');
+            item.className = 'deck-item';
+            item.innerHTML = `
+                <div class="deck-item-cost">${carta.custo}</div>
+                <div class="deck-item-emoji">${carta.icone}</div>
+                <div class="deck-item-name">${carta.nome}</div>
+                <div class="deck-item-qty">${qty}</div>
+                <button class="deck-item-remove" title="Remover">✕</button>
+            `;
+
+            item.addEventListener('click', (e) => {
+                if (e.target.classList.contains('deck-item-remove')) {
+                    removerUmaCarta(carta.id);
+                } else {
+                    toggleCartaNoDeck(carta);
+                }
+            });
+
+            list.appendChild(item);
+        });
+    }
+
+    const total = Object.values(state.deck).reduce((a, b) => a + b, 0);
+    const counter = document.getElementById('deckCounter');
+    document.getElementById('deckCount').textContent = total;
+
+    counter.classList.remove('over-limit', 'complete');
+    if (total > state.MAX_DECK) counter.classList.add('over-limit');
+    else if (total >= state.MIN_DECK) counter.classList.add('complete');
+
+    const deckValido = total >= state.MIN_DECK && total <= state.MAX_DECK;
+    document.getElementById('saveDeckBtn').disabled = !deckValido;
+
+    renderCurvaMana();
+}
+
+function renderCurvaMana() {
+    const curva = document.getElementById('manaCurve');
+    curva.innerHTML = '';
+
+    const buckets = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, '7+':0 };
+    Object.entries(state.deck).forEach(([id, qty]) => {
+        const carta = CARDS_DB.find(c => c.id === id);
+        if (!carta) return;
+        const key = carta.custo >= 7 ? '7+' : carta.custo;
+        buckets[key] += qty;
+    });
+
+    const maxVal = Math.max(...Object.values(buckets), 1);
+
+    Object.entries(buckets).forEach(([custo, qty]) => {
+        const bar = document.createElement('div');
+        bar.className = 'curve-bar';
+        const altura = (qty / maxVal) * 100;
+        bar.innerHTML = `
+            <div class="curve-bar-fill" style="height: ${Math.max(altura, qty > 0 ? 8 : 2)}%;"></div>
+            <div class="curve-bar-label">${custo}</div>
+        `;
+        curva.appendChild(bar);
+    });
+}
+
+/* ============================================================
+   LÓGICA DO DECK
+============================================================ */
+function toggleCartaNoDeck(carta) {
+    const atual = state.deck[carta.id] || 0;
+    const total = Object.values(state.deck).reduce((a, b) => a + b, 0);
+
+    if (atual >= state.MAX_COPIAS) {
+        delete state.deck[carta.id];
+        mostrarToast(`Removidas todas as cópias de ${carta.nome}`, 'info');
+    } else if (atual >= carta.coletadas) {
+        mostrarToast(`Você só possui ${carta.coletadas} cópia(s) de ${carta.nome}`, 'error');
+        return;
+    } else if (total >= state.MAX_DECK) {
+        mostrarToast(`Deck cheio! Máximo de ${state.MAX_DECK} cartas`, 'error');
+        return;
+    } else {
+        state.deck[carta.id] = atual + 1;
+    }
+
+    renderCartas();
+    renderDeck();
+}
+
+function removerUmaCarta(cardId) {
+    if (!state.deck[cardId]) return;
+    state.deck[cardId]--;
+    if (state.deck[cardId] <= 0) delete state.deck[cardId];
+    renderCartas();
+    renderDeck();
+}
+
+function limparDeck() {
+    if (Object.keys(state.deck).length === 0) return;
+    if (!confirm('Tem certeza que deseja limpar o deck?')) return;
+    state.deck = {};
+    renderCartas();
+    renderDeck();
+    mostrarToast('Deck limpo!', 'info');
+}
+
+/* ============================================================
+   SALVAR DECK NO DJANGO
+============================================================ */
+async function salvarDeck() {
+    const total = Object.values(state.deck).reduce((a, b) => a + b, 0);
+    if (total < state.MIN_DECK || total > state.MAX_DECK) {
+        mostrarToast(`Deck precisa ter entre ${state.MIN_DECK} e ${state.MAX_DECK} cartas!`, 'error');
+        return;
+    }
+
+    const btn = document.getElementById('saveDeckBtn');
+    btn.disabled = true;
+    btn.textContent = 'SALVANDO...';
+
+    try {
+        const data = await postJSON('/api/save-deck/', {
+            deck: state.deck,
+            match_id: window.MATCH_ID || null
+        });
+
+        if (data.status === 'success') {
+            mostrarToast('✅ Deck salvo com sucesso!', 'success');
+            if (data.redirect) {
+                setTimeout(() => window.location.href = data.redirect, 1000);
+            }
+        } else {
+            mostrarToast('🚫 ' + (data.message || 'Erro ao salvar deck'), 'error');
+        }
+
+    } catch (error) {
+        console.error('Erro ao salvar deck:', error);
+        mostrarToast('📡 ' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'SALVAR';
+    }
+}
+
+/* ============================================================
+   FILTROS
+============================================================ */
+function setupFiltros() {
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        state.busca = e.target.value;
+        renderCartas();
+    });
+
+    document.querySelectorAll('#filterType .filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#filterType .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.filtroTipo = btn.dataset.value;
+            renderCartas();
+        });
+    });
+
+    document.querySelectorAll('#filterCost .filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#filterCost .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.filtroCusto = btn.dataset.value;
+            renderCartas();
+        });
+    });
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+function init() {
+    setupFiltros();
+    renderCartas();
+    renderDeck();
+}
+
+init();
+</script>
+{% endblock %}

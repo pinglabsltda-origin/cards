@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OLYMPUS — Batalha</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ==================== RESET ==================== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a558;
+    --gold-bright: #e8c878;
+    --gold-dark: #6b4f1e;
+    --stone: #d9cfbd;
+    --stone-dark: #a89878;
+    --ink: #2a1f14;
+    --marble: linear-gradient(180deg, #efe6d0 0%, #d9cfbd 45%, #b8a986 100%);
+    --bg-deep: #0a0805;
+    --blue-glow: #4fc3f7;
+    --red-glow: #c62828;
+    --green-glow: #66bb6a;
+  }
+
+  html, body {
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', serif;
+    background: #050302;
+    user-select: none;
+  }
+
+  /* ==================== FUNDO DO CAMPO ==================== */
+  .battlefield {
+    position: fixed;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.55) saturate(0.8) contrast(1.05);
+  }
+
+  .battlefield::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg,
+        rgba(20,10,5,0.85) 0%,
+        rgba(40,25,15,0.4) 25%,
+        rgba(60,40,25,0.35) 50%,
+        rgba(40,25,15,0.4) 75%,
+        rgba(20,10,5,0.85) 100%);
+  }
+
+  /* ==================== ESTRUTURA PRINCIPAL ==================== */
+  .board {
+    position: relative;
+    z-index: 2;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 90px 1fr 340px;
+    grid-template-areas:
+      "topbar topbar topbar"
+      "left   arena  log"
+      "left   bottom right";
+    gap: 0;
+  }
+
+  /* ==================== TOPBAR ==================== */
+  .topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    background: linear-gradient(180deg, rgba(10,6,3,0.95), rgba(10,6,3,0.6));
+    border-bottom: 1px solid rgba(201,165,88,0.4);
+    z-index: 20;
+  }
+
+  .topbar-left, .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .turn-indicator {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: var(--gold-bright);
+    text-shadow: 0 0 20px rgba(232,200,120,0.6);
+    padding: 8px 20px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(201,165,88,0.5);
+    border-radius: 6px;
+    transition: all 0.3s;
+  }
+
+  .turn-indicator.opponent {
+    color: #ff8a80;
+    text-shadow: 0 0 20px rgba(198,40,40,0.6);
+  }
+
+  .turn-timer {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--gold-bright);
+    min-width: 60px;
+    text-align: center;
+    text-shadow: 0 0 15px rgba(232,200,120,0.5);
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid var(--gold-dark);
+    color: var(--gold-bright);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-btn:hover {
+    background: rgba(201,165,88,0.25);
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 20px rgba(232,200,120,0.5);
+    transform: scale(1.08);
+  }
+
+  /* ==================== SIDEBAR ESQUERDA (AVATARES) ==================== */
+  .left-rail {
+    grid-area: left;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    background: linear-gradient(90deg, rgba(10,6,3,0.85), transparent);
+    z-index: 15;
+  }
+
+  .hero-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .avatar-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: var(--marble);
+    border: 3px solid var(--gold-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,0.5),
+      inset 0 -4px 10px rgba(107,79,30,0.4),
+      0 0 25px rgba(0,0,0,0.9);
+    position: relative;
+  }
+
+  .avatar-circle.enemy { border-color: #6b0f0f; }
+
+  .avatar-circle::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--gold-bright);
+    animation: rotateRing 3s linear infinite;
+    opacity: 0.7;
+  }
+
+  .avatar-circle.enemy::after { border-top-color: #ff5252; }
+
+  @keyframes rotateRing { to { transform: rotate(360deg); } }
+
+  .hero-hp {
+    width: 74px;
+    background: rgba(0,0,0,0.85);
+    border: 2px solid var(--gold-dark);
+    border-radius: 4px;
+    padding: 3px 8px;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: #ff8a80;
+    text-shadow: 0 0 10px rgba(198,40,40,0.6);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+  }
+
+  .hero-hp.friendly { color: var(--gold-bright); text-shadow: 0 0 10px rgba(232,200,120,0.6); }
+
+  .hero-name {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--stone);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+  }
+
+  /* ==================== ARENA CENTRAL ==================== */
+  .arena {
+    grid-area: arena;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 30px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .arena::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232,200,120,0.5), transparent);
+    pointer-events: none;
+  }
+
+  .lane {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    min-height: 200px;
+    flex-wrap: nowrap;
+  }
+
+  /* Slots vazios */
+  .slot {
+    width: 128px;
+    height: 172px;
+    border: 2px dashed rgba(201,165,88,0.25);
+    border-radius: 10px;
+    background: rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: rgba(201,165,88,0.2);
+    transition: all 0.25s;
+    position: relative;
+  }
+
+  .slot.playable {
+    border-color: rgba(232,200,120,0.6);
+    background: rgba(232,200,120,0.08);
+    box-shadow: inset 0 0 20px rgba(232,200,120,0.15);
+    cursor: pointer;
+  }
+
+  .slot.playable:hover {
+    border-color: var(--gold-bright);
+    background: rgba(232,200,120,0.2);
+    box-shadow:
+      inset 0 0 30px rgba(232,200,120,0.3),
+      0 0 25px rgba(232,200,120,0.4);
+    transform: scale(1.03);
+  }
+
+  /* ==================== DRAG & DROP (ZONA DA MESA) ==================== */
+  .lane.drop-zone {
+    border: 2px dashed transparent;
+    border-radius: 12px;
+    transition: all 0.25s;
+    padding: 8px;
+  }
+
+  .lane.drop-zone.drag-active {
+    border-color: rgba(232,200,120,0.6);
+    background: rgba(232,200,120,0.06);
+    box-shadow: inset 0 0 40px rgba(232,200,120,0.15);
+  }
+
+  .lane.drop-zone.drag-over {
+    border-color: var(--gold-bright);
+    background: rgba(232,200,120,0.18);
+    box-shadow:
+      inset 0 0 50px rgba(232,200,120,0.35),
+      0 0 40px rgba(232,200,120,0.5);
+    transform: scale(1.01);
+  }
+
+  /* Carta sendo arrastada */
+  .hand-card.dragging {
+    opacity: 0.4;
+    transform: scale(0.95) rotate(0deg) !important;
+    cursor: grabbing;
+  }
+
+  .hand-card[draggable="true"] {
+    cursor: grab;
+  }
+
+  .hand-card[draggable="true"]:active {
+    cursor: grabbing;
+  }
+
+  /* Animação de "entrada na mesa" */
+  @keyframes cardEnter {
+    0% { transform: scale(0.3) translateY(60px); opacity: 0; }
+    60% { transform: scale(1.1) translateY(-8px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .field-card.just-played {
+    animation: cardEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Aviso flutuante (erro de mana/campo cheio) */
+  .toast-warning {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, #c62828, #6b0f0f);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    padding: 12px 28px;
+    border: 2px solid #ff8a80;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.8), 0 0 30px rgba(198,40,40,0.6);
+    z-index: 2000;
+    animation: toastSlide 0.3s ease;
+    pointer-events: none;
+  }
+
+  .toast-warning.success {
+    background: linear-gradient(180deg, #2e7d32, #1b5e20);
+    border-color: #a5d6a7;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.8), 0 0 30px rgba(102,187,106,0.6);
+  }
+
+  @keyframes toastSlide {
+    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* ==================== PAINEL DE LOG (DIREITA) ==================== */
+  .log-panel {
+    grid-area: log;
+    background: linear-gradient(180deg, rgba(10,6,3,0.9), rgba(20,12,6,0.9));
+    border-left: 1px solid rgba(201,165,88,0.3);
+    padding: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 15;
+  }
+
+  .log-header {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(201,165,88,0.3);
+    margin-bottom: 12px;
+  }
+
+  .log-entries {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;
+  }
+
+  .log-entries::-webkit-scrollbar { width: 4px; }
+  .log-entries::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+  .log-entries::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+
+  .log-entry {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--stone);
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.35);
+    border-left: 3px solid var(--gold-dark);
+    border-radius: 3px;
+    animation: slideIn 0.3s ease;
+  }
+
+  .log-entry.attack { border-left-color: #ff5252; color: #ffb3b3; }
+  .log-entry.heal { border-left-color: var(--green-glow); color: #b3ffb3; }
+  .log-entry.spell { border-left-color: #b388ff; color: #d4b3ff; }
+  .log-entry.turn { border-left-color: var(--gold-bright); color: var(--gold-bright); font-weight: 600; }
+  .log-entry.error { border-left-color: #ff8a80; color: #ff8a80; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ==================== PAINEL INFERIOR (MÃO + CONTROLES) ==================== */
+  .bottom-panel {
+    grid-area: bottom;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 15px 30px 20px;
+    background: linear-gradient(0deg, rgba(10,6,3,0.95), transparent);
+    gap: 20px;
+    z-index: 15;
+    position: relative;
+  }
+
+  /* ==================== MANA ==================== */
+  .mana-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 220px;
+  }
+
+  .mana-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(232,200,120,0.4);
+  }
+
+  .mana-crystals {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 240px;
+  }
+
+  .crystal {
+    width: 20px;
+    height: 26px;
+    background: linear-gradient(180deg, #4fc3f7 0%, #1565c0 60%, #0d3a6b 100%);
+    clip-path: polygon(50% 0%, 100% 35%, 85% 100%, 15% 100%, 0% 35%);
+    border: 1px solid #0d3a6b;
+    box-shadow:
+      inset 0 2px 3px rgba(255,255,255,0.5),
+      0 0 8px rgba(79,195,247,0.6);
+    transition: all 0.3s;
+  }
+
+  .crystal.empty {
+    background: linear-gradient(180deg, #2a2a2a, #111);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.9);
+    opacity: 0.4;
+    filter: grayscale(1);
+  }
+
+  .mana-count {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--blue-glow);
+    text-shadow: 0 0 15px rgba(79,195,247,0.8);
+  }
+
+  /* ==================== MÃO DE CARTAS ==================== */
+  .hand-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    min-height: 210px;
+    position: relative;
+    perspective: 1400px;
+  }
+
+  .hand {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: -30px;
+    position: relative;
+    height: 210px;
+    width: 100%;
+  }
+
+  .hand-card {
+    width: 132px;
+    height: 188px;
+    border-radius: 10px;
+    background: var(--marble);
+    border: 3px solid var(--gold-dark);
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+    box-shadow:
+      0 6px 18px rgba(0,0,0,0.8),
+      inset 0 0 0 1px rgba(255,255,255,0.4);
+    transform-origin: bottom center;
+    overflow: hidden;
+  }
+
+  .hand-card:hover {
+    transform: translateY(-40px) scale(1.15);
+    z-index: 100;
+    box-shadow:
+      0 20px 45px rgba(0,0,0,0.95),
+      0 0 45px rgba(232,200,120,0.6),
+      inset 0 0 0 1px rgba(255,255,255,0.5);
+  }
+
+  .hand-card.unplayable {
+    filter: grayscale(0.85) brightness(0.6);
+    cursor: not-allowed;
+  }
+
+  .hand-card.unplayable:hover {
+    transform: translateY(-15px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+  }
+
+  /* Custo */
+  .card-cost {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #8fd4ff 0%, #2196f3 50%, #0d3a6b 100%);
+    border: 2px solid #0d3a6b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 15px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    z-index: 5;
+    box-shadow:
+      inset 0 -3px 5px rgba(0,0,0,0.4),
+      inset 0 2px 4px rgba(255,255,255,0.6),
+      0 2px 6px rgba(0,0,0,0.8);
+  }
+
+  /* Retrato */
+  .hand-card-portrait {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 100px;
+    border-radius: 5px;
+    background: radial-gradient(circle at 50% 40%, #6b4f1e, #2c1810 90%);
+    border: 1px solid var(--gold-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    overflow: hidden;
+  }
+
+  .hand-card-name {
+    position: absolute;
+    bottom: 34px;
+    left: 8px;
+    right: 8px;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--ink);
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+  }
+
+  .hand-card-stats {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .stat-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 12px;
+    border: 2px solid var(--gold-dark);
+    box-shadow:
+      inset 0 -2px 4px rgba(0,0,0,0.4),
+      0 1px 4px rgba(0,0,0,0.7);
+  }
+
+  .stat-badge.atk {
+    background: radial-gradient(circle at 35% 30%, #f8e08a, #d4af37 55%, #8b6914);
+    color: var(--ink);
+  }
+
+  .stat-badge.hp {
+    background: radial-gradient(circle at 35% 30%, #ff8a80, #c62828 55%, #6b0f0f);
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  }
+
+  /* ==================== BOTÃO DE TURNO ==================== */
+  .turn-button-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+  }
+
+  .btn-end-turn {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 16px 34px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #f4d97a 0%, #d4af37 45%, #a8801c 100%);
+    border: 2px solid #4a3612;
+    border-radius: 8px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.5),
+      inset 0 -4px 8px rgba(107,79,30,0.5),
+      inset 0 3px 4px rgba(255,255,255,0.5),
+      0 6px 20px rgba(0,0,0,0.7),
+      0 0 30px rgba(232,200,120,0.35);
+    transition: all 0.25s;
+    position: relative;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    animation: pulseBtn 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulseBtn {
+    0%, 100% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5), inset 0 -4px 8px rgba(107,79,30,0.5), inset 0 3px 4px rgba(255,255,255,0.5), 0 6px 20px rgba(0,0,0,0.7), 0 0 30px rgba(232,200,120,0.35); }
+    50% { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5), inset 0 -4px 8px rgba(107,79,30,0.5), inset 0 3px 4px rgba(255,255,255,0.5), 0 6px 20px rgba(0,0,0,0.7), 0 0 45px rgba(232,200,120,0.75); }
+  }
+
+  .btn-end-turn:hover:not(:disabled) {
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+    animation: none;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.6),
+      inset 0 -4px 8px rgba(107,79,30,0.5),
+      inset 0 3px 4px rgba(255,255,255,0.6),
+      0 8px 25px rgba(0,0,0,0.85),
+      0 0 60px rgba(232,200,120,0.9);
+  }
+
+  .btn-end-turn:active { transform: translateY(0); }
+
+  .btn-end-turn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    animation: none;
+  }
+
+  .deck-counter {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--stone-dark);
+  }
+
+  .deck-counter strong {
+    color: var(--gold-bright);
+    font-size: 14px;
+  }
+
+  /* ==================== CARTAS NO CAMPO ==================== */
+  .field-card {
+    width: 128px;
+    height: 172px;
+    border-radius: 10px;
+    background: var(--marble);
+    border: 3px solid var(--gold-dark);
+    position: relative;
+    box-shadow:
+      0 8px 22px rgba(0,0,0,0.85),
+      inset 0 0 0 1px rgba(255,255,255,0.4);
+    transition: all 0.3s;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .field-card:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 14px 30px rgba(0,0,0,0.95),
+      0 0 30px rgba(232,200,120,0.55);
+  }
+
+  .field-card.enemy-card {
+    border-color: #6b0f0f;
+    background: linear-gradient(180deg, #e8c8c8 0%, #c9a8a8 45%, #a89888 100%);
+  }
+
+  .field-card.enemy-card:hover {
+    box-shadow:
+      0 14px 30px rgba(0,0,0,0.95),
+      0 0 30px rgba(198,40,40,0.7);
+  }
+
+  /* Carta pronta para atacar */
+  .field-card.can-attack::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 12px;
+    border: 2px solid var(--gold-bright);
+    box-shadow: 0 0 20px var(--gold-bright), inset 0 0 15px rgba(232,200,120,0.5);
+    animation: attackPulse 1.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .field-card.enemy-card.can-attack::after {
+    border-color: #ff5252;
+    box-shadow: 0 0 20px #ff5252, inset 0 0 15px rgba(198,40,40,0.5);
+  }
+
+  @keyframes attackPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .field-card.selected-attacker {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow:
+      0 20px 40px rgba(0,0,0,0.95),
+      0 0 45px #ffb300,
+      inset 0 0 20px rgba(255,179,0,0.4);
+    z-index: 10;
+  }
+
+  .field-card.valid-target {
+    box-shadow:
+      0 8px 22px rgba(0,0,0,0.85),
+      0 0 30px #ff5252,
+      inset 0 0 15px rgba(255,82,82,0.4);
+    cursor: crosshair;
+  }
+
+  .field-card .damage-taken {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 42px;
+    color: #ff3b3b;
+    text-shadow:
+      -2px -2px 0 #000,
+      2px -2px 0 #000,
+      -2px 2px 0 #000,
+      2px 2px 0 #000,
+      0 0 20px #ff0000;
+    pointer-events: none;
+    z-index: 20;
+    animation: floatDamage 1s ease-out forwards;
+  }
+
+  @keyframes floatDamage {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    30% { opacity: 1; transform: translate(-50%, -70%) scale(1.3); }
+    100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+  }
+
+  .impact {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffb300, #ff3b3b 50%, transparent 70%);
+    pointer-events: none;
+    z-index: 25;
+    animation: impactBurst 0.5s ease-out forwards;
+  }
+
+  @keyframes impactBurst {
+    0% { opacity: 1; transform: scale(0); }
+    50% { opacity: 1; transform: scale(1.5); }
+    100% { opacity: 0; transform: scale(2); }
+  }
+
+  /* ==================== FIM DE JOGO ==================== */
+  .game-over {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 25px;
+    animation: fadeIn 0.5s;
+  }
+
+  .game-over.show { display: flex; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .game-over-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 72px;
+    letter-spacing: 8px;
+    background: linear-gradient(180deg, #f4d97a, #d4af37 50%, #8b6914);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 60px rgba(232,200,120,0.5);
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.9));
+  }
+
+  .game-over-title.defeat {
+    background: linear-gradient(180deg, #ff8a80, #c62828 50%, #6b0f0f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ==================== RESPONSIVO ==================== */
+  @media (max-width: 1200px) {
+    .log-panel { display: none; }
+    .board { grid-template-columns: 80px 1fr; grid-template-areas: "topbar topbar" "left arena" "left bottom"; }
+  }
+
+  @media (max-width: 800px) {
+    .hand-card { width: 100px; height: 145px; }
+    .field-card, .slot { width: 92px; height: 130px; }
+    .hand-card-portrait { height: 70px; font-size: 36px; }
+    .hand-card-name { font-size: 9px; }
+    .btn-end-turn { padding: 12px 20px; font-size: 12px; }
+    .mana-panel { min-width: 140px; }
+    .turn-button-panel { min-width: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ⚠️ Substitua as variáveis Django abaixo conforme seu backend -->
+<script>
+  // ============================================================
+  // CONFIGURAÇÕES INJETADAS PELO DJANGO
+  // ============================================================
+  // Se você usa Django, descomente as linhas abaixo:
+  // window.MATCH_ID    = {{ match.id|default:"null" }};
+  // window.PLAYER_HP   = {{ match.player.hp|default:30 }};
+  // window.ENEMY_HP    = {{ match.enemy.hp|default:30 }};
+  window.INITIAL_HAND = {{ cards|safe|default:"null" }};
+  window.CARDS_DB_JSON = {{ cards_db_json|safe|default:"[]" }};
+  // window.ENEMY_NAME  = "{{ match.enemy.name|default:'HADES' }}";
+
+  // Fallback para testes locais (sem Django):
+  window.MATCH_ID     = window.MATCH_ID     ?? null;
+  window.PLAYER_HP    = window.PLAYER_HP    ?? 30;
+  window.ENEMY_HP     = window.ENEMY_HP     ?? 30;
+  window.ENEMY_NAME   = window.ENEMY_NAME   ?? 'HADES';
+  window.INITIAL_HAND = window.INITIAL_HAND ?? null;
+</script>
+
+<!-- ==================== CSRF TOKEN (Django) ==================== -->
+<!-- Se estiver renderizando via Django, DESCOMENTE: -->
+<!-- {% csrf_token %} -->
+
+<!-- ==================== CAMPO DE BATALHA ==================== -->
+<div class="battlefield"></div>
+
+<!-- ==================== ESTRUTURA ==================== -->
+<div class="board">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="icon-btn" title="Menu" onclick="sair()">☰</button>
+      <button class="icon-btn" title="Emotes">😀</button>
+    </div>
+
+    <div class="turn-indicator" id="turnIndicator">SEU TURNO</div>
+
+    <div class="topbar-right">
+      <div class="turn-timer" id="turnTimer">0:45</div>
+      <button class="icon-btn" title="Sons">🔊</button>
+      <button class="icon-btn" title="Configurações">⚙️</button>
+    </div>
+  </div>
+
+  <!-- LEFT RAIL (Avatares) -->
+  <aside class="left-rail">
+    <div class="hero-avatar">
+      <div class="avatar-circle enemy">🏺</div>
+      <div class="hero-hp" id="enemyHp">30</div>
+      <div class="hero-name" id="enemyName">HADES</div>
+    </div>
+
+    <div class="hero-avatar">
+      <div class="avatar-circle">🏛️</div>
+      <div class="hero-hp friendly" id="playerHp">30</div>
+      <div class="hero-name">PEREU</div>
+    </div>
+  </aside>
+
+  <!-- ARENA (Campo) -->
+  <section class="arena">
+    <!-- Lado inimigo -->
+    <div class="lane" id="enemyLane">
+      <div class="slot">·</div>
+      <div class="slot">·</div>
+      <div class="slot">·</div>
+      <div class="slot">·</div>
+      <div class="slot">·</div>
+    </div>
+
+    <!-- ✅ Lado aliado — ZONA DA MESA (DROPZONE) -->
+    <div class="lane drop-zone" id="playerLane"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)">
+      <div class="slot playable">+</div>
+      <div class="slot playable">+</div>
+      <div class="slot playable">+</div>
+      <div class="slot playable">+</div>
+      <div class="slot playable">+</div>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <aside class="log-panel">
+    <div class="log-header">📜 CRÔNICAS DA BATALHA</div>
+    <div class="log-entries" id="logEntries">
+      <div class="log-entry turn">A batalha começou!</div>
+    </div>
+  </aside>
+
+  <!-- PAINEL INFERIOR -->
+  <div class="bottom-panel">
+
+    <!-- MANA -->
+    <div class="mana-panel">
+      <div class="mana-label">ÍCOR (MANA)</div>
+      <div class="mana-crystals" id="manaCrystals"></div>
+      <div class="mana-count" id="manaCount">1 / 1</div>
+    </div>
+
+    <!-- MÃO -->
+    <div class="hand-area" id="handArea">
+      <div class="hand" id="hand"></div>
+    </div>
+
+    <!-- TURNO -->
+    <div class="turn-button-panel">
+      <button class="btn-end-turn" id="endTurnBtn" onclick="encerrarTurno()">Finalizar Turno</button>
+      <div class="deck-counter">Deck: <strong id="deckCount">15</strong> cartas</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== FIM DE JOGO ==================== -->
+<div class="game-over" id="gameOver">
+  <div class="game-over-title" id="gameOverTitle">VITÓRIA</div>
+  <button class="btn-end-turn" onclick="location.reload()">Nova Batalha</button>
+</div>
+
+<script>
+/* ============================================================
+   ESTADO DO JOGO
+============================================================ */
+const state = {
+  turno: 'player',
+  turnoNumero: 1,
+  tempoRestante: 45,
+  timerId: null,
+
+  // ✅ Controle de drag & drop
+  draggedCard: null,
+  dragActive: false,
+  isLoading: false,     // 🔒 trava de jogada durante fetch
+
+  player: {
+    hp: window.PLAYER_HP,
+    mana: 1,
+    manaMax: 1,
+    deck: [],
+    mao: [],
+    campo: [],
+    atacantesSelecionados: [],
+    cartasJogadasNesteTurno: 0
+  },
+
+  enemy: {
+    hp: window.ENEMY_HP,
+    mana: 1,
+    manaMax: 1,
+    deck: [],
+    mao: [],
+    campo: []
+  },
+
+  cartaSelecionada: null,
+  atacanteAtivo: null
+};
+
+/* ============================================================
+   BANCO DE CARTAS (do backend Django)
+============================================================ */
+const CARDS_DB = JSON.parse('{{ cards_db_json|safe }}');
+
+/* Cartas iniciais da mão (do backend) */
+window.INITIAL_HAND = JSON.parse('{{ cards|safe }}');
+
+/* ============================================================
+   CSRF TOKEN (Django)
+============================================================ */
+function getCsrfToken() {
+  // 1º tenta pelo cookie
+  const cookieMatch = document.cookie.match(/csrftoken=([^;]+)/);
+  if (cookieMatch) return cookieMatch[1];
+
+  // 2º tenta pelo input hidden ({% csrf_token %})
+  const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+  if (input) return input.value;
+
+  console.warn('⚠️ CSRF token não encontrado!');
+  return '';
+}
+
+/* ============================================================
+   UTILITÁRIOS
+============================================================ */
+function criarDeck() {
+  const deck = [];
+  for (let i = 0; i < 20; i++) {
+    const carta = CARDS_DB[Math.floor(Math.random() * CARDS_DB.length)];
+    deck.push({
+      ...carta,
+      uid: Math.random().toString(36).substr(2, 9),
+      hpAtual: carta.hp,
+      podeAtacar: false
+    });
+  }
+  return deck;
+}
+
+function log(msg, tipo = '') {
+  const entries = document.getElementById('logEntries');
+  const div = document.createElement('div');
+  div.className = 'log-entry ' + tipo;
+  div.textContent = msg;
+  entries.appendChild(div);
+  entries.scrollTop = entries.scrollHeight;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function mostrarToast(msg, tipo = '') {
+  const toast = document.createElement('div');
+  toast.className = 'toast-warning ' + tipo;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2200);
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+============================================================ */
+function init() {
+  // Se o Django injetou cartas, usa elas. Senão, gera localmente.
+  if (Array.isArray(window.INITIAL_HAND) && window.INITIAL_HAND.length > 0) {
+    state.player.mao = window.INITIAL_HAND.map(c => ({
+      ...c,
+      uid: c.uid || c.id || Math.random().toString(36).substr(2, 9),
+      hpAtual: c.hp,
+      podeAtacar: false
+    }));
+    state.player.deck = criarDeck();
+    state.enemy.deck  = criarDeck();
+  } else {
+    state.player.deck = criarDeck();
+    state.enemy.deck  = criarDeck();
+    for (let i = 0; i < 4; i++) {
+      state.player.mao.push(state.player.deck.pop());
+      state.enemy.mao.push(state.enemy.deck.pop());
+    }
+  }
+
+  // Aplica nome do inimigo
+  const enemyNameEl = document.getElementById('enemyName');
+  if (enemyNameEl && window.ENEMY_NAME) enemyNameEl.textContent = window.ENEMY_NAME;
+
+  renderTudo();
+  iniciarTurno('player');
+}
+
+/* ============================================================
+   RENDERIZAÇÃO
+============================================================ */
+function renderTudo() {
+  renderMao();
+  renderCampo();
+  renderMana();
+  renderStats();
+}
+
+function renderMao() {
+  const hand = document.getElementById('hand');
+  hand.innerHTML = '';
+
+  state.player.mao.forEach(carta => {
+    const el = document.createElement('div');
+    el.className = 'hand-card';
+    if (carta.custo > state.player.mana) el.classList.add('unplayable');
+
+    // ✅ Torna a carta arrastável
+    el.setAttribute('draggable', 'true');
+
+    el.innerHTML = `
+      <div class="card-cost">${carta.custo}</div>
+      <div class="hand-card-portrait">${carta.icone}</div>
+      <div class="hand-card-name">${carta.nome}</div>
+      <div class="hand-card-stats">
+        <div class="stat-badge atk">${carta.atk}</div>
+        <div class="stat-badge hp">${carta.hp}</div>
+      </div>
+    `;
+
+    // ✅ Drag Events
+    el.addEventListener('dragstart', (e) => startDragging(e, carta, el));
+    el.addEventListener('dragend',   (e) => stopDragging(e, el));
+
+    // Fallback: clique também invoca
+    el.onclick = () => jogarCarta(carta);
+
+    // Leve rotação em leque
+    const total = state.player.mao.length;
+    const index = state.player.mao.indexOf(carta);
+    const rotacao = (index - (total - 1) / 2) * 4;
+    const desloc  = (index - (total - 1) / 2) * -18;
+    el.style.transform = `rotate(${rotacao}deg) translateY(${Math.abs(rotacao)}px)`;
+    el.style.marginLeft = desloc + 'px';
+
+    hand.appendChild(el);
+  });
+}
+
+function renderCampo() {
+  // Campo inimigo
+  const enemyLane = document.getElementById('enemyLane');
+  enemyLane.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const carta = state.enemy.campo[i];
+    if (carta) {
+      enemyLane.appendChild(criarCampoCarta(carta, true));
+    } else {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.textContent = '·';
+      enemyLane.appendChild(slot);
+    }
+  }
+
+  // Campo aliado
+  const playerLane = document.getElementById('playerLane');
+  playerLane.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const carta = state.player.campo[i];
+    if (carta) {
+      playerLane.appendChild(criarCampoCarta(carta, false));
+    } else {
+      const slot = document.createElement('div');
+      slot.className = 'slot playable';
+      slot.textContent = '+';
+      playerLane.appendChild(slot);
+    }
+  }
+}
+
+function criarCampoCarta(carta, isEnemy) {
+  const el = document.createElement('div');
+  el.className = 'field-card' + (isEnemy ? ' enemy-card' : '');
+  el.dataset.uid = carta.uid;
+  el.setAttribute('draggable', 'false'); // mesa não arrasta
+
+  if (!isEnemy && carta.podeAtacar && state.turno === 'player') {
+    el.classList.add('can-attack');
+  }
+
+  if (state.atacanteAtivo && state.atacanteAtivo.uid === carta.uid) {
+    el.classList.add('selected-attacker');
+  }
+
+  if (state.atacanteAtivo && isEnemy && state.turno === 'player') {
+    el.classList.add('valid-target');
+  }
+
+  el.innerHTML = `
+    <div class="card-cost" style="background:radial-gradient(circle at 35% 30%, ${isEnemy ? '#ff8a80' : '#8fd4ff'} 0%, ${isEnemy ? '#c62828' : '#2196f3'} 50%, ${isEnemy ? '#6b0f0f' : '#0d3a6b'} 100%)">${carta.custo}</div>
+    <div class="hand-card-portrait">${carta.icone}</div>
+    <div class="hand-card-name">${carta.nome}</div>
+    <div class="hand-card-stats">
+      <div class="stat-badge atk">${carta.atk}</div>
+      <div class="stat-badge hp">${carta.hpAtual}</div>
+    </div>
+  `;
+
+  el.onclick = (e) => {
+    e.stopPropagation();
+    if (state.turno !== 'player') return;
+
+    if (isEnemy) {
+      if (state.atacanteAtivo) atacar(state.atacanteAtivo, carta, el);
+    } else {
+      if (carta.podeAtacar) selecionarAtacante(carta);
+    }
+  };
+
+  return el;
+}
+
+function renderMana() {
+  const crystals = document.getElementById('manaCrystals');
+  crystals.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const c = document.createElement('div');
+    c.className = 'crystal';
+    if (i >= state.player.manaMax || i >= state.player.mana) c.classList.add('empty');
+    crystals.appendChild(c);
+  }
+  document.getElementById('manaCount').textContent = `${state.player.mana} / ${state.player.manaMax}`;
+}
+
+function renderStats() {
+  document.getElementById('playerHp').textContent = state.player.hp;
+  document.getElementById('enemyHp').textContent = state.enemy.hp;
+  document.getElementById('deckCount').textContent = state.player.deck.length;
+}
+
+/* ============================================================
+   DRAG & DROP — ZONA DA MESA
+============================================================ */
+function startDragging(event, carta, el) {
+  if (state.turno !== 'player' || state.isLoading) {
+    event.preventDefault();
+    return;
+  }
+
+  if (carta.custo > state.player.mana) {
+    event.preventDefault();
+    mostrarToast('⚡ Ícor insuficiente para invocar!');
+    return;
+  }
+
+  if (state.player.campo.length >= 5) {
+    event.preventDefault();
+    mostrarToast('🛡️ Campo cheio! Não há espaço para mais heróis.');
+    return;
+  }
+
+  state.draggedCard = carta;
+  state.dragActive = true;
+
+  el.classList.add('dragging');
+  document.getElementById('playerLane').classList.add('drag-active');
+
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', carta.uid);
+}
+
+function stopDragging(event, el) {
+  state.draggedCard = null;
+  state.dragActive = false;
+
+  if (el) el.classList.remove('dragging');
+  document.getElementById('playerLane').classList.remove('drag-active', 'drag-over');
+}
+
+function onDragOver(event) {
+  event.preventDefault();
+  if (!state.draggedCard || state.isLoading) return;
+  event.dataTransfer.dropEffect = 'move';
+  document.getElementById('playerLane').classList.add('drag-over');
+}
+
+function onDragLeave(event) {
+  if (event.currentTarget.contains(event.relatedTarget)) return;
+  document.getElementById('playerLane').classList.remove('drag-over');
+}
+
+function onDrop(event) {
+  event.preventDefault();
+  document.getElementById('playerLane').classList.remove('drag-over', 'drag-active');
+
+  if (!state.draggedCard || state.isLoading) return;
+
+  const carta = state.draggedCard;
+  state.draggedCard = null;
+  state.dragActive = false;
+
+  if (state.turno !== 'player') return;
+  if (carta.custo > state.player.mana) {
+    mostrarToast('⚡ Ícor insuficiente!');
+    return;
+  }
+  if (state.player.campo.length >= 5) {
+    mostrarToast('🛡️ Campo cheio!');
+    return;
+  }
+
+  invocarCarta(carta);
+}
+
+/* ============================================================
+   INVOCAR CARTA — validação local + servidor Django
+============================================================ */
+async function invocarCarta(carta) {
+  // 🔒 Trava UI durante o fetch
+  state.isLoading = true;
+  const endBtn = document.getElementById('endTurnBtn');
+  const btnWasDisabled = endBtn.disabled;
+  endBtn.disabled = true;
+
+  try {
+    // 1️⃣ Pergunta ao Django se a jogada é válida
+    const response = await fetch('/api/play-card/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        card_id: carta.id || carta.uid,
+        match_id: window.MATCH_ID
+      })
+    });
+
+    // 2️⃣ Se o servidor retornar erro HTTP (400/403/500)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Servidor respondeu ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // 3️⃣ Servidor aprovou?
+    if (data.status === 'success') {
+      // ✅ Aplica estado autoritativo do servidor
+      state.player.mana = (data.new_faith !== undefined)
+        ? data.new_faith
+        : state.player.mana - carta.custo;
+
+      // Move carta da mão → campo
+      state.player.mao = state.player.mao.filter(c => c.uid !== carta.uid);
+      state.player.campo.push(carta);
+
+      log(`⚡ Você invocou ${carta.nome} (${carta.atk}/${carta.hp})`, 'spell');
+      if (data.message) console.log('🐍 Django:', data.message);
+
+      renderTudo();
+
+      // 🎬 Animação de entrada
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-uid="${carta.uid}"]`);
+        if (el) {
+          el.classList.add('just-played');
+          setTimeout(() => el.classList.remove('just-played'), 600);
+        }
+      });
+
+    } else {
+      // ❌ Servidor recusou (anti-cheat, mana no server, etc.)
+      mostrarToast('🚫 Jogada recusada: ' + (data.message || 'inválida'));
+      console.warn('Django recusou:', data);
+
+      // Ressincroniza com o servidor
+      if (data.new_faith !== undefined) {
+        state.player.mana = data.new_faith;
+        renderMana();
+      }
+    }
+
+  } catch (error) {
+    console.error('❌ Erro na comunicação com o servidor:', error);
+    mostrarToast('📡 Erro de conexão com o Olimpo.');
+
+  } finally {
+    // 🔓 Libera UI
+    state.isLoading = false;
+    endBtn.disabled = btnWasDisabled;
+  }
+}
+
+/* ============================================================
+   FALLBACK: clique na carta também invoca
+============================================================ */
+function jogarCarta(carta) {
+  if (state.turno !== 'player' || state.isLoading) return;
+
+  if (carta.custo > state.player.mana) {
+    mostrarToast('⚡ Ícor insuficiente!');
+    return;
+  }
+  if (state.player.campo.length >= 5) {
+    mostrarToast('🛡️ Campo cheio!');
+    return;
+  }
+
+  invocarCarta(carta);
+}
+
+/* ============================================================
+   COMBATE
+============================================================ */
+function selecionarAtacante(carta) {
+  if (state.atacanteAtivo && state.atacanteAtivo.uid === carta.uid) {
+    state.atacanteAtivo = null;
+  } else {
+    state.atacanteAtivo = carta;
+  }
+  renderCampo();
+}
+
+async function atacar(atacante, alvo, alvoEl) {
+  if (atacante.uid === alvo.uid) return;
+
+  const atkEl = document.querySelector(`[data-uid="${atacante.uid}"]`);
+
+  if (alvoEl) {
+    const impact = document.createElement('div');
+    impact.className = 'impact';
+    impact.style.left = '50%';
+    impact.style.top = '50%';
+    impact.style.transform = 'translate(-50%, -50%)';
+    alvoEl.style.position = 'relative';
+    alvoEl.appendChild(impact);
+    setTimeout(() => impact.remove(), 500);
+  }
+
+  alvo.hpAtual -= atacante.atk;
+  atacante.hpAtual -= alvo.atk;
+
+  mostrarDano(alvoEl, atacante.atk);
+  if (atkEl) mostrarDano(atkEl, alvo.atk);
+
+  log(`⚔️ ${atacante.nome} atacou ${alvo.nome}!`, 'attack');
+
+  atacante.podeAtacar = false;
+  state.atacanteAtivo = null;
+
+  await delay(400);
+
+  if (alvo.hpAtual <= 0) {
+    log(`💀 ${alvo.nome} foi destruído!`, 'attack');
+    state.enemy.campo = state.enemy.campo.filter(c => c.uid !== alvo.uid);
+  }
+  if (atacante.hpAtual <= 0) {
+    log(`💀 ${atacante.nome} caiu em batalha!`, 'attack');
+    state.player.campo = state.player.campo.filter(c => c.uid !== atacante.uid);
+  }
+
+  renderTudo();
+  verificarFimDeJogo();
+}
+
+function mostrarDano(el, valor) {
+  if (!el) return;
+  const dmg = document.createElement('div');
+  dmg.className = 'damage-taken';
+  dmg.textContent = '-' + valor;
+  el.appendChild(dmg);
+  setTimeout(() => dmg.remove(), 1000);
+}
+
+/* ============================================================
+   TURNOS
+============================================================ */
+function iniciarTurno(quem) {
+  state.turno = quem;
+  clearInterval(state.timerId);
+
+  const indicator = document.getElementById('turnIndicator');
+  const endBtn = document.getElementById('endTurnBtn');
+
+  if (quem === 'player') {
+    indicator.textContent = 'SEU TURNO';
+    indicator.classList.remove('opponent');
+
+    state.player.manaMax = Math.min(10, state.player.manaMax + 1);
+    state.player.mana = state.player.manaMax;
+
+    if (state.player.deck.length > 0) {
+      state.player.mao.push(state.player.deck.pop());
+    }
+
+    state.player.campo.forEach(c => c.podeAtacar = true);
+
+    endBtn.disabled = false;
+    endBtn.style.opacity = '1';
+    endBtn.style.cursor = 'pointer';
+
+    log(`--- Turno ${state.turnoNumero}: Seu turno ---`, 'turn');
+
+    renderTudo();
+    iniciarTimer(45, () => encerrarTurno());
+
+  } else {
+    indicator.textContent = 'TURNO INIMIGO';
+    indicator.classList.add('opponent');
+
+    endBtn.disabled = true;
+    endBtn.style.opacity = '0.4';
+    endBtn.style.cursor = 'not-allowed';
+
+    log(`--- Turno ${state.turnoNumero}: Turno do inimigo ---`, 'turn');
+
+    renderTudo();
+    setTimeout(turnoInimigo, 1200);
+  }
+}
+
+function iniciarTimer(segundos, callback) {
+  state.tempoRestante = segundos;
+  const timerEl = document.getElementById('turnTimer');
+  timerEl.textContent = `0:${String(segundos).padStart(2, '0')}`;
+
+  state.timerId = setInterval(() => {
+    state.tempoRestante--;
+    timerEl.textContent = `0:${String(Math.max(0, state.tempoRestante)).padStart(2, '0')}`;
+
+    if (state.tempoRestante <= 0) {
+      clearInterval(state.timerId);
+      callback();
+    }
+  }, 1000);
+}
+
+async function turnoInimigo() {
+  state.enemy.manaMax = Math.min(10, state.enemy.manaMax + 1);
+  state.enemy.mana = state.enemy.manaMax;
+
+  if (state.enemy.deck.length > 0) {
+    state.enemy.mao.push(state.enemy.deck.pop());
+  }
+
+  renderStats();
+
+  await delay(800);
+
+  // IA: joga cartas
+  let jogou = true;
+  while (jogou && state.enemy.campo.length < 5) {
+    jogou = false;
+    const jogavel = state.enemy.mao.find(c => c.custo <= state.enemy.mana);
+    if (jogavel) {
+      state.enemy.mana -= jogavel.custo;
+      state.enemy.mao = state.enemy.mao.filter(c => c.uid !== jogavel.uid);
+      state.enemy.campo.push(jogavel);
+      log(`O inimigo invocou ${jogavel.nome}`, 'spell');
+      renderCampo();
+      await delay(600);
+      jogou = true;
+    }
+  }
+
+  // IA: ataca
+  for (const atacante of state.enemy.campo) {
+    if (state.player.hp <= 0) break;
+
+    if (state.player.campo.length > 0) {
+      const alvo = state.player.campo[Math.floor(Math.random() * state.player.campo.length)];
+      const alvoEl = document.querySelector(`[data-uid="${alvo.uid}"]`);
+      const atkEl = document.querySelector(`[data-uid="${atacante.uid}"]`);
+
+      alvo.hpAtual -= atacante.atk;
+      atacante.hpAtual -= alvo.atk;
+
+      if (alvoEl) mostrarDano(alvoEl, atacante.atk);
+      if (atkEl) mostrarDano(atkEl, alvo.atk);
+
+      log(`⚔️ Inimigo: ${atacante.nome} atacou ${alvo.nome}`, 'attack');
+
+      await delay(500);
+
+      if (alvo.hpAtual <= 0) {
+        log(`💀 ${alvo.nome} foi destruído!`, 'attack');
+        state.player.campo = state.player.campo.filter(c => c.uid !== alvo.uid);
+      }
+      if (atacante.hpAtual <= 0) {
+        log(`💀 ${atacante.nome} caiu em batalha!`, 'attack');
+        state.enemy.campo = state.enemy.campo.filter(c => c.uid !== atacante.uid);
+      }
+
+      renderTudo();
+    } else {
+      state.player.hp -= atacante.atk;
+      log(`💥 Inimigo atacou diretamente! -${atacante.atk} HP`, 'attack');
+
+      const hpEl = document.getElementById('playerHp');
+      mostrarDano(hpEl.parentElement, atacante.atk);
+
+      renderStats();
+      await delay(500);
+
+      if (state.player.hp <= 0) break;
+    }
+  }
+
+  verificarFimDeJogo();
+
+  if (state.player.hp > 0 && state.enemy.hp > 0) {
+    state.turnoNumero++;
+    iniciarTurno('player');
+  }
+}
+
+function encerrarTurno() {
+  if (state.turno !== 'player' || state.isLoading) return;
+  clearInterval(state.timerId);
+  state.atacanteAtivo = null;
+  state.turnoNumero++;
+  iniciarTurno('enemy');
+}
+
+/* ============================================================
+   FIM DE JOGO
+============================================================ */
+function verificarFimDeJogo() {
+  if (state.enemy.hp <= 0) finalizar(true);
+  else if (state.player.hp <= 0) finalizar(false);
+}
+
+function finalizar(vitoria) {
+  clearInterval(state.timerId);
+  const go = document.getElementById('gameOver');
+  const titulo = document.getElementById('gameOverTitle');
+
+  if (vitoria) {
+    titulo.textContent = 'VITÓRIA';
+    titulo.classList.remove('defeat');
+    log('🏆 VITÓRIA! Você conquistou o Olimpo!', 'turn');
+  } else {
+    titulo.textContent = 'DERROTA';
+    titulo.classList.add('defeat');
+    log('💀 Derrota... Os deuses não favoreceram você.', 'turn');
+  }
+
+  go.classList.add('show');
+}
+
+function sair() {
+  if (confirm('Deseja realmente sair da batalha?')) {
+    location.reload();
+  }
+}
+
+/* ============================================================
+   START
+============================================================ */
+init();
+</script>
+
+</body>
+</html>

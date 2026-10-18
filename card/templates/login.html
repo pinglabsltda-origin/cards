@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OLYMPUS — Entrar</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ==================== RESET ==================== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a558;
+    --gold-bright: #e8c878;
+    --gold-dark: #6b4f1e;
+    --ink: #2a1f14;
+    --stone: #d9cfbd;
+    --stone-light: #efe6d0;
+    --marble: linear-gradient(180deg, #efe6d0 0%, #d9cfbd 45%, #b8a986 100%);
+    --red-error: #c62828;
+    --green-ok: #66bb6a;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', serif;
+    background: #0a0805;
+    color: var(--stone);
+  }
+
+  /* ==================== CENA DE FUNDO ==================== */
+  .scene {
+    position: fixed;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    filter: saturate(0.85) contrast(1.05);
+    animation: slowZoom 30s ease-in-out infinite alternate;
+  }
+
+  @keyframes slowZoom {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+  }
+
+  .scene::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.75) 100%),
+      linear-gradient(180deg, rgba(10,6,3,0.5) 0%, rgba(10,6,3,0.4) 50%, rgba(10,6,3,0.8) 100%);
+    pointer-events: none;
+  }
+
+  /* ==================== PARTÍCULAS DOURADAS ==================== */
+  .particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: var(--gold-bright);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--gold-bright), 0 0 15px rgba(232,200,120,0.5);
+    animation: floatUp linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes floatUp {
+    0% {
+      transform: translateY(100vh) translateX(0) scale(0);
+      opacity: 0;
+    }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% {
+      transform: translateY(-10vh) translateX(var(--drift, 50px)) scale(1);
+      opacity: 0;
+    }
+  }
+
+  /* ==================== LOGO TOPO ==================== */
+  .logo-top {
+    position: fixed;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .logo-main {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: clamp(38px, 5vw, 62px);
+    letter-spacing: 8px;
+    color: #e8d9b0;
+    text-shadow:
+      0 0 2px #2a1f14,
+      0 2px 0 #6b4f1e,
+      0 4px 0 #4a3612,
+      0 6px 0 #2a1f14,
+      0 8px 18px rgba(0,0,0,0.9),
+      0 0 45px rgba(232, 200, 120, 0.45);
+    line-height: 1;
+  }
+
+  .logo-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(14px, 1.4vw, 20px);
+    color: #f4e4c1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(232,200,120,0.4);
+    margin-top: 4px;
+    letter-spacing: 3px;
+  }
+
+  .logo-divider {
+    width: 200px;
+    height: 1px;
+    margin: 14px auto 0;
+    background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+    position: relative;
+  }
+
+  .logo-divider::before,
+  .logo-divider::after {
+    content: '❖';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold-bright);
+    font-size: 12px;
+    text-shadow: 0 0 10px var(--gold-bright);
+  }
+
+  .logo-divider::before { left: 50%; margin-left: -75px; }
+  .logo-divider::after { right: 50%; margin-right: -75px; }
+
+  /* ==================== PAINEL CENTRAL ==================== */
+  .login-wrapper {
+    position: relative;
+    z-index: 5;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    padding-top: 180px;
+  }
+
+  .login-panel {
+    width: 100%;
+    max-width: 440px;
+    background:
+      linear-gradient(180deg, rgba(30,22,15,0.96) 0%, rgba(15,10,6,0.98) 100%);
+    border: 2px solid var(--gold-dark);
+    border-radius: 12px;
+    padding: 42px 38px 36px;
+    position: relative;
+    box-shadow:
+      inset 0 0 0 1px rgba(232,200,120,0.25),
+      inset 0 2px 30px rgba(0,0,0,0.6),
+      0 20px 60px rgba(0,0,0,0.9),
+      0 0 60px rgba(232,200,120,0.15);
+    animation: panelEnter 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes panelEnter {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Moldura interna decorativa */
+  .login-panel::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(201,165,88,0.3);
+    border-radius: 8px;
+    pointer-events: none;
+  }
+
+  /* Cantos decorativos (esquinas gregas) */
+  .corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--gold);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .corner.tl { top: -2px; left: -2px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+  .corner.tr { top: -2px; right: -2px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
+  .corner.bl { bottom: -2px; left: -2px; border-right: none; border-top: none; border-bottom-left-radius: 12px; }
+  .corner.br { bottom: -2px; right: -2px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+
+  /* ==================== TABS (LOGIN / CADASTRO) ==================== */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 30px;
+    border-bottom: 1px solid rgba(201,165,88,0.3);
+    position: relative;
+  }
+
+  .tab-btn {
+    flex: 1;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--stone);
+    background: transparent;
+    border: none;
+    padding: 14px 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  .tab-btn:hover { opacity: 0.85; }
+
+  .tab-btn.active {
+    color: var(--gold-bright);
+    opacity: 1;
+    text-shadow: 0 0 15px rgba(232,200,120,0.6);
+  }
+
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 15%;
+    right: 15%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+    box-shadow: 0 0 12px var(--gold-bright);
+    border-radius: 3px;
+  }
+
+  /* ==================== FORMULÁRIOS ==================== */
+  .form-pane {
+    display: none;
+    animation: fadeSlide 0.4s ease;
+  }
+
+  .form-pane.active { display: block; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .field {
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .field-label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    padding-left: 2px;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    font-size: 18px;
+    color: var(--gold);
+    pointer-events: none;
+    transition: color 0.3s;
+    z-index: 2;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 15px 48px 15px 48px;
+    background: rgba(0,0,0,0.55);
+    border: 2px solid rgba(201,165,88,0.35);
+    border-radius: 8px;
+    color: var(--stone-light);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    outline: none;
+    transition: all 0.3s;
+    box-shadow:
+      inset 0 2px 8px rgba(0,0,0,0.6),
+      0 0 0 0 rgba(232,200,120,0);
+  }
+
+  .field-input::placeholder {
+    color: rgba(217, 207, 189, 0.35);
+    font-style: italic;
+  }
+
+  .field-input:hover:not(:focus) {
+    border-color: rgba(201,165,88,0.55);
+  }
+
+  .field-input:focus {
+    border-color: var(--gold-bright);
+    background: rgba(0,0,0,0.7);
+    box-shadow:
+      inset 0 2px 8px rgba(0,0,0,0.6),
+      0 0 0 3px rgba(232,200,120,0.15),
+      0 0 25px rgba(232,200,120,0.35);
+  }
+
+  .field-input:focus + .input-icon,
+  .field-input:focus ~ .input-icon {
+    color: var(--gold-bright);
+    text-shadow: 0 0 10px var(--gold-bright);
+  }
+
+  /* Toggle mostrar senha */
+  .toggle-pass {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    color: var(--stone);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 6px;
+    opacity: 0.6;
+    transition: all 0.25s;
+    border-radius: 50%;
+    z-index: 2;
+  }
+
+  .toggle-pass:hover {
+    opacity: 1;
+    color: var(--gold-bright);
+    background: rgba(232,200,120,0.1);
+  }
+
+  /* Estados de validação */
+  .field.error .field-input {
+    border-color: var(--red-error);
+    box-shadow:
+      inset 0 2px 8px rgba(0,0,0,0.6),
+      0 0 0 3px rgba(198,40,40,0.15),
+      0 0 20px rgba(198,40,40,0.4);
+  }
+
+  .field.valid .field-input {
+    border-color: var(--green-ok);
+  }
+
+  .field-error-msg {
+    display: none;
+    font-size: 12px;
+    color: #ff8a80;
+    margin-top: 6px;
+    padding-left: 4px;
+    font-style: italic;
+    animation: shake 0.3s;
+  }
+
+  .field.error .field-error-msg { display: block; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  /* ==================== LEMBRAR / ESQUECI ==================== */
+  .row-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 26px;
+    font-size: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--stone);
+    transition: color 0.25s;
+  }
+
+  .checkbox-wrap:hover { color: var(--gold-bright); }
+
+  .checkbox-wrap input { display: none; }
+
+  .custom-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--gold-dark);
+    border-radius: 4px;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .custom-checkbox::after {
+    content: '✓';
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 900;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.25s;
+  }
+
+  .checkbox-wrap input:checked + .custom-checkbox {
+    background: var(--marble);
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 12px rgba(232,200,120,0.6);
+  }
+
+  .checkbox-wrap input:checked + .custom-checkbox::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .link-forgot {
+    color: var(--gold);
+    text-decoration: none;
+    font-style: italic;
+    transition: all 0.25s;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+  }
+
+  .link-forgot:hover {
+    color: var(--gold-bright);
+    border-bottom-color: var(--gold-bright);
+    text-shadow: 0 0 10px rgba(232,200,120,0.5);
+  }
+
+  /* ==================== BOTÃO PRINCIPAL ==================== */
+  .btn-login {
+    width: 100%;
+    padding: 17px;
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--ink);
+    background:
+      linear-gradient(180deg, #f4d97a 0%, #d4af37 45%, #a8801c 100%);
+    border: 2px solid #4a3612;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.5),
+      inset 0 -4px 8px rgba(107,79,30,0.5),
+      inset 0 3px 4px rgba(255,255,255,0.5),
+      0 6px 20px rgba(0,0,0,0.7),
+      0 0 30px rgba(232,200,120,0.35);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+
+  .btn-login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    transition: left 0.6s;
+  }
+
+  .btn-login:hover::before { left: 100%; }
+
+  .btn-login:hover {
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.6),
+      inset 0 -4px 8px rgba(107,79,30,0.5),
+      inset 0 3px 4px rgba(255,255,255,0.6),
+      0 10px 28px rgba(0,0,0,0.85),
+      0 0 55px rgba(232,200,120,0.75);
+  }
+
+  .btn-login:active {
+    transform: translateY(0);
+    box-shadow:
+      inset 0 3px 8px rgba(0,0,0,0.3),
+      inset 0 0 0 1px rgba(255,255,255,0.4),
+      0 3px 12px rgba(0,0,0,0.7),
+      0 0 25px rgba(232,200,120,0.5);
+  }
+
+  .btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    filter: grayscale(0.3);
+  }
+
+  /* Spinner dentro do botão */
+  .btn-spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(42,31,20,0.3);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+
+  .btn-login.loading .btn-text { display: none; }
+  .btn-login.loading .btn-spinner { display: block; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ==================== DIVISOR "OU" ==================== */
+  .divider-or {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 4px 0 22px;
+    color: var(--stone);
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    opacity: 0.55;
+  }
+
+  .divider-or::before,
+  .divider-or::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,165,88,0.6), transparent);
+  }
+
+  /* ==================== LOGIN SOCIAL ==================== */
+  .social-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .social-btn {
+    flex: 1;
+    padding: 12px;
+    background: rgba(0,0,0,0.4);
+    border: 2px solid rgba(201,165,88,0.35);
+    border-radius: 8px;
+    color: var(--stone-light);
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+  }
+
+  .social-btn:hover {
+    border-color: var(--gold-bright);
+    background: rgba(232,200,120,0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 20px rgba(232,200,120,0.3);
+  }
+
+  .social-btn .ico { font-size: 16px; }
+
+  /* ==================== FOOTER ==================== */
+  .footer-note {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    font-size: 12px;
+    color: rgba(217,207,189,0.55);
+    font-style: italic;
+    letter-spacing: 1px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .footer-note span { color: var(--gold); }
+
+  /* ==================== TOAST ==================== */
+  .toast {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    z-index: 9999;
+    background: linear-gradient(135deg, rgba(45,24,16,0.98), rgba(26,15,46,0.98));
+    border: 1px solid var(--gold);
+    border-left: 4px solid var(--gold-bright);
+    color: var(--gold-bright);
+    padding: 16px 24px;
+    border-radius: 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    box-shadow:
+      0 10px 40px rgba(0,0,0,0.8),
+      0 0 30px rgba(232,200,120,0.4);
+    transform: translateX(150%);
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 360px;
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  .toast.error {
+    border-color: var(--red-error);
+    border-left-color: #ff5252;
+    color: #ff8a80;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px rgba(198,40,40,0.4);
+  }
+
+  .toast.success {
+    border-color: var(--green-ok);
+    border-left-color: var(--green-ok);
+    color: #b3ffb3;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px rgba(102,187,106,0.4);
+  }
+
+  /* ==================== RESPONSIVO ==================== */
+  @media (max-width: 600px) {
+    .login-wrapper { padding-top: 150px; }
+    .login-panel { padding: 32px 24px 28px; }
+    .logo-main { letter-spacing: 4px; }
+    .logo-divider { width: 140px; }
+    .field-input { padding: 14px 42px 14px 44px; font-size: 15px; }
+    .btn-login { padding: 15px; font-size: 14px; letter-spacing: 3px; }
+    .toast { right: 15px; left: 15px; max-width: none; }
+  }
+
+  @media (max-height: 720px) {
+    .login-wrapper { padding-top: 130px; }
+    .logo-top { top: 20px; }
+    .logo-main { font-size: 34px; }
+    .field { margin-bottom: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== FUNDO ==================== -->
+<div class="scene"></div>
+
+<!-- ==================== PARTÍCULAS ==================== -->
+<div class="particles" id="particles"></div>
+
+<!-- ==================== LOGO ==================== -->
+<div class="logo-top">
+  <div class="logo-main">OLYMPUS</div>
+  <div class="logo-sub">Champions &amp; History</div>
+  <div class="logo-divider"></div>
+</div>
+
+<!-- ==================== PAINEL DE LOGIN ==================== -->
+<div class="login-wrapper">
+  <div class="login-panel">
+    <span class="corner tl"></span>
+    <span class="corner tr"></span>
+    <span class="corner bl"></span>
+    <span class="corner br"></span>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="login" onclick="switchTab('login')">Entrar</button>
+      <button class="tab-btn" data-tab="register" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+
+    <!-- ==================== LOGIN ==================== -->
+    <form class="form-pane active" id="pane-login" onsubmit="return handleLogin(event)">
+      <div class="field" id="login-user-field">
+        <label class="field-label" for="loginUser">Nome do Herói</label>
+        <div class="input-wrap">
+          <input class="field-input" id="loginUser" type="text" placeholder="Como os deuses te chamam?" autocomplete="username">
+          <span class="input-icon">⚔️</span>
+        </div>
+        <div class="field-error-msg">Informe seu nome de herói.</div>
+      </div>
+
+      <div class="field" id="login-pass-field">
+        <label class="field-label" for="loginPass">Senha Sagrada</label>
+        <div class="input-wrap">
+          <input class="field-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+          <span class="input-icon">🔒</span>
+          <button type="button" class="toggle-pass" onclick="togglePass('loginPass', this)">👁️</button>
+        </div>
+        <div class="field-error-msg">Senha deve ter ao menos 4 caracteres.</div>
+      </div>
+
+      <div class="row-options">
+        <label class="checkbox-wrap">
+          <input type="checkbox" id="rememberMe">
+          <span class="custom-checkbox"></span>
+          Lembrar de mim
+        </label>
+        <a class="link-forgot" href="#" onclick="alert('🏛️ Um mensageiro levará a nova senha até você.'); return false;">Esqueci a senha</a>
+      </div>
+
+      <button class="btn-login" type="submit" id="btnLogin">
+        <span class="btn-text">Entrar no Olimpo</span>
+        <span class="btn-spinner"></span>
+      </button>
+
+      <div class="divider-or">OU</div>
+
+      <div class="social-row">
+        <button type="button" class="social-btn" onclick="socialLogin('Google')">
+          <span class="ico">🔍</span> Google
+        </button>
+        <button type="button" class="social-btn" onclick="socialLogin('Discord')">
+          <span class="ico">💬</span> Discord
+        </button>
+      </div>
+    </form>
+
+    <!-- ==================== CADASTRO ==================== -->
+    <form class="form-pane" id="pane-register" onsubmit="return handleRegister(event)">
+      <div class="field" id="reg-user-field">
+        <label class="field-label" for="regUser">Nome do Herói</label>
+        <div class="input-wrap">
+          <input class="field-input" id="regUser" type="text" placeholder="Escolha seu nome lendário" autocomplete="username">
+          <span class="input-icon">🏛️</span>
+        </div>
+        <div class="field-error-msg">Nome deve ter ao menos 3 caracteres.</div>
+      </div>
+
+      <div class="field" id="reg-email-field">
+        <label class="field-label" for="regEmail">Correio do Oráculo</label>
+        <div class="input-wrap">
+          <input class="field-input" id="regEmail" type="email" placeholder="seu@email.com" autocomplete="email">
+          <span class="input-icon">📜</span>
+        </div>
+        <div class="field-error-msg">Informe um e-mail válido.</div>
+      </div>
+
+      <div class="field" id="reg-pass-field">
+        <label class="field-label" for="regPass">Senha Sagrada</label>
+        <div class="input-wrap">
+          <input class="field-input" id="regPass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          <span class="input-icon">🔒</span>
+          <button type="button" class="toggle-pass" onclick="togglePass('regPass', this)">👁️</button>
+        </div>
+        <div class="field-error-msg">Senha deve ter ao menos 6 caracteres.</div>
+      </div>
+
+      <div class="field" id="reg-confirm-field">
+        <label class="field-label" for="regConfirm">Confirmar Senha</label>
+        <div class="input-wrap">
+          <input class="field-input" id="regConfirm" type="password" placeholder="Repita a senha" autocomplete="new-password">
+          <span class="input-icon">🔒</span>
+          <button type="button" class="toggle-pass" onclick="togglePass('regConfirm', this)">👁️</button>
+        </div>
+        <div class="field-error-msg">As senhas não coincidem.</div>
+      </div>
+
+      <div class="row-options">
+        <label class="checkbox-wrap">
+          <input type="checkbox" id="acceptTerms">
+          <span class="custom-checkbox"></span>
+          Aceito os termos do Olimpo
+        </label>
+      </div>
+
+      <button class="btn-login" type="submit" id="btnRegister">
+        <span class="btn-text">Forjar Conta</span>
+        <span class="btn-spinner"></span>
+      </button>
+
+      <div class="divider-or">JÁ TEM CONTA?</div>
+
+      <div class="social-row">
+        <button type="button" class="social-btn" onclick="switchTab('login')">
+          <span class="ico">⚔️</span> Fazer Login
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="footer-note">
+  ⚡ <span>OLYMPUS</span> © 2026 — Inspirado na mitologia grega
+</div>
+
+<!-- ==================== TOAST ==================== -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   PARTÍCULAS DOURADAS
+============================================================ */
+(function criarParticulas() {
+  const container = document.getElementById('particles');
+  const TOTAL = 35;
+
+  for (let i = 0; i < TOTAL; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (10 + Math.random() * 15) + 's';
+    p.style.animationDelay = (Math.random() * 15) + 's';
+    p.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+
+    const size = 2 + Math.random() * 3;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+
+    container.appendChild(p);
+  }
+})();
+
+/* ============================================================
+   TROCA DE TABS
+============================================================ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.form-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + tab).classList.add('active');
+}
+
+/* ============================================================
+   MOSTRAR / ESCONDER SENHA
+============================================================ */
+function togglePass(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const mostrar = input.type === 'password';
+  input.type = mostrar ? 'text' : 'password';
+  btn.textContent = mostrar ? '🙈' : '👁️';
+}
+
+/* ============================================================
+   VALIDAÇÃO
+============================================================ */
+function setError(fieldId, hasError, isValid = false) {
+  const field = document.getElementById(fieldId);
+  field.classList.toggle('error', hasError);
+  field.classList.toggle('valid', !hasError && isValid);
+}
+
+function isEmailValido(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/* ============================================================
+   LOGIN
+============================================================ */
+function handleLogin(e) {
+  e.preventDefault();
+
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const remember = document.getElementById('rememberMe').checked;
+
+  let valido = true;
+
+  // Valida usuário
+  if (user.length < 3) { setError('login-user-field', true); valido = false; }
+  else setError('login-user-field', false, true);
+
+  // Valida senha
+  if (pass.length < 4) { setError('login-pass-field', true); valido = false; }
+  else setError('login-pass-field', false, true);
+
+  if (!valido) {
+    toast('Verifique os campos destacados.', 'error');
+    return false;
+  }
+
+  // Simula carregamento
+  const btn = document.getElementById('btnLogin');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+
+    if (remember) localStorage.setItem('olympus_user', user);
+
+    toast(`⚡ Bem-vindo de volta, ${user}!`, 'success');
+
+    setTimeout(() => {
+      // Redireciona para a home do jogo
+      // window.location.href = 'index.html';
+      alert(`🏛️ Bem-vindo ao Olimpo, ${user}!\n\n(Redirecionaria para a Home)`);
+    }, 900);
+
+  }, 1200);
+
+  return false;
+}
+
+/* ============================================================
+   CADASTRO
+============================================================ */
+function handleRegister(e) {
+  e.preventDefault();
+
+  const user = document.getElementById('regUser').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const confirm = document.getElementById('regConfirm').value;
+  const termos = document.getElementById('acceptTerms').checked;
+
+  let valido = true;
+
+  if (user.length < 3) { setError('reg-user-field', true); valido = false; }
+  else setError('reg-user-field', false, true);
+
+  if (!isEmailValido(email)) { setError('reg-email-field', true); valido = false; }
+  else setError('reg-email-field', false, true);
+
+  if (pass.length < 6) { setError('reg-pass-field', true); valido = false; }
+  else setError('reg-pass-field', false, true);
+
+  if (pass !== confirm || confirm.length === 0) { setError('reg-confirm-field', true); valido = false; }
+  else setError('reg-confirm-field', false, true);
+
+  if (!termos) {
+    toast('Você precisa aceitar os termos do Olimpo.', 'error');
+    valido = false;
+  }
+
+  if (!valido) {
+    if (termos) toast('Verifique os campos destacados.', 'error');
+    return false;
+  }
+
+  const btn = document.getElementById('btnRegister');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+
+    toast(`🏛️ Herói ${user} forjado com sucesso!`, 'success');
+
+    setTimeout(() => {
+      switchTab('login');
+      document.getElementById('loginUser').value = user;
+      document.getElementById('loginUser').focus();
+      toast('Agora entre com sua senha.', 'success');
+    }, 1200);
+
+  }, 1400);
+
+  return false;
+}
+
+/* ============================================================
+   LOGIN SOCIAL
+============================================================ */
+function socialLogin(rede) {
+  toast(`Conexão com ${rede}...`, 'success');
+  setTimeout(() => {
+    alert(`🔗 Login via ${rede} (simulado)`);
+  }, 600);
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+let toastTimer = null;
+function toast(msg, tipo = '') {
+  const el = document.getElementById('toast');
+  el.className = 'toast ' + tipo;
+  el.textContent = msg;
+  el.classList.add('show');
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+  }, 3200);
+}
+
+/* ============================================================
+   LEMBRAR USUÁRIO
+============================================================ */
+window.addEventListener('load', () => {
+  const salvo = localStorage.getItem('olympus_user');
+  if (salvo) {
+    document.getElementById('loginUser').value = salvo;
+    document.getElementById('rememberMe').checked = true;
+    document.getElementById('loginPass').focus();
+  } else {
+    document.getElementById('loginUser').focus();
+  }
+});
+
+/* ============================================================
+   LIMPA ERRO AO DIGITAR
+============================================================ */
+document.querySelectorAll('.field-input').forEach(input => {
+  input.addEventListener('input', () => {
+    const field = input.closest('.field');
+    if (field) field.classList.remove('error');
+  });
+});
+
+/* ============================================================
+   ENTER NAVEGA ENTRE CAMPOS
+============================================================ */
+document.querySelectorAll('.field-input').forEach((input, idx, arr) => {
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && idx < arr.length - 1) {
+      e.preventDefault();
+      arr[idx + 1].focus();
+    }
+  });
+});
+</script>
+
+</body>
+</html>

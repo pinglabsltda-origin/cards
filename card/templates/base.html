@@ -1,0 +1,863 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OLYMPUS{% endblock %}</title>
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+    <!-- ============================================================
+         CSS GLOBAL — usado por TODAS as páginas
+    ============================================================ -->
+    <style>
+        /* ==================== RESET ==================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ==================== VARIÁVEIS ==================== */
+        :root {
+            --gold: #c9a558;
+            --gold-bright: #e8c878;
+            --gold-deep: #8b6914;
+            --gold-dark: #6b4f1e;
+            --stone: #d9cfbd;
+            --stone-dark: #a89878;
+            --ink: #2a1f14;
+            --marble: linear-gradient(180deg, #efe6d0 0%, #d9cfbd 45%, #b8a986 100%);
+            --bg-deep: #0a0805;
+            --blue-glow: #4fc3f7;
+            --red-glow: #c62828;
+            --green-glow: #66bb6a;
+            --purple: #b388ff;
+            --dracma: #7ee0f7;
+            --wood-dark: #3a2416;
+            --wood: #6b4423;
+        }
+
+        html, body {
+            min-height: 100%;
+            font-family: 'Cormorant Garamond', serif;
+            background: #050302;
+            color: var(--stone);
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; font-family: inherit; }
+        img { max-width: 100%; height: auto; }
+
+        /* ==================== FUNDO PADRÃO (TEMPLO GREGO) ==================== */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.55) saturate(0.85) contrast(1.05);
+            z-index: -2;
+        }
+
+        .bg-layer::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(201,165,88,0.15) 0%, transparent 65%),
+                linear-gradient(180deg,
+                    rgba(10,6,3,0.55) 0%,
+                    rgba(20,12,6,0.45) 40%,
+                    rgba(10,6,3,0.85) 100%);
+        }
+
+        /* ==================== HEADER GLOBAL ==================== */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 32px;
+            background: linear-gradient(180deg, rgba(10,6,3,0.95), rgba(10,6,3,0.4));
+            border-bottom: 1px solid rgba(201,165,88,0.35);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(6px);
+        }
+
+        .app-header .profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-header .avatar-ring {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 30%, #6b4f1e, #2c1810 80%);
+            border: 3px solid var(--gold-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.15),
+                0 0 20px rgba(0,0,0,0.7),
+                0 0 15px rgba(201,165,88,0.35);
+            position: relative;
+        }
+
+        .app-header .avatar-ring::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px dashed rgba(201,165,88,0.5);
+            animation: rotateRing 20s linear infinite;
+        }
+
+        @keyframes rotateRing { to { transform: rotate(360deg); } }
+
+        .app-header .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .app-header .profile-name {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+            color: var(--stone);
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        }
+
+        .app-header .profile-level {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Cinzel', serif;
+            font-size: 11px;
+            color: var(--stone-dark);
+        }
+
+        .app-header .lvl-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            background: radial-gradient(circle at 40% 30%, #f4d97a, #a8801c);
+            color: var(--ink);
+            font-weight: 900;
+            font-size: 11px;
+            border-radius: 50%;
+            border: 2px solid var(--gold-dark);
+            box-shadow: 0 0 10px rgba(232,200,120,0.5);
+        }
+
+        .app-header .xp-bar {
+            width: 120px;
+            height: 4px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid rgba(201,165,88,0.3);
+        }
+
+        .app-header .xp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a8801c, #f4d97a);
+            box-shadow: 0 0 8px rgba(232,200,120,0.6);
+        }
+
+        /* ==================== MOEDAS ==================== */
+        .currencies {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .currency {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px 6px 6px;
+            background: linear-gradient(180deg, rgba(20,12,6,0.9), rgba(10,6,3,0.9));
+            border: 2px solid var(--gold-dark);
+            border-radius: 26px;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.05),
+                0 4px 12px rgba(0,0,0,0.7);
+        }
+
+        .currency-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--ink);
+            border: 2px solid var(--gold-dark);
+            box-shadow:
+                inset 0 -2px 4px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.5),
+                0 0 12px rgba(232,200,120,0.5);
+        }
+
+        .currency-icon.dracma {
+            background: radial-gradient(circle at 35% 30%, #e0e0e0, #9e9e9e 55%, #424242);
+            border-color: #424242;
+        }
+
+        .currency-icon.ouro {
+            background: radial-gradient(circle at 35% 30%, #ffe27a, #d4af37 55%, #8b6914);
+        }
+
+        .currency-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .currency-label {
+            font-family: 'Cinzel', serif;
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--stone-dark);
+            margin-bottom: 2px;
+        }
+
+        .currency-amount {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 14px;
+            color: var(--gold-bright);
+            text-shadow: 0 0 8px rgba(232,200,120,0.5);
+        }
+
+        /* ==================== TÍTULO DE PÁGINA ==================== */
+        .page-title-section {
+            text-align: center;
+            padding: 30px 20px 10px;
+            position: relative;
+        }
+
+        .page-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: clamp(38px, 6vw, 64px);
+            letter-spacing: 12px;
+            background: linear-gradient(180deg, #f4d97a 0%, #d4af37 45%, #8b6914 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter:
+                drop-shadow(0 4px 8px rgba(0,0,0,0.9))
+                drop-shadow(0 0 30px rgba(232,200,120,0.4));
+            line-height: 1;
+        }
+
+        .page-subtitle-1 {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: clamp(18px, 2.4vw, 26px);
+            letter-spacing: 6px;
+            color: var(--gold);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.9), 0 0 20px rgba(201,165,88,0.4);
+            margin-top: 6px;
+        }
+
+        .page-subtitle-2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            color: var(--stone);
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+            margin-top: 8px;
+            opacity: 0.85;
+        }
+
+        /* ==================== BOTÃO VOLTAR ==================== */
+        .btn-back {
+            position: absolute;
+            top: 28px;
+            left: 32px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: var(--gold-bright);
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+            padding: 10px 18px 10px 14px;
+            background: linear-gradient(90deg, rgba(20,12,6,0.9), rgba(20,12,6,0.5));
+            border: 1px solid var(--gold-dark);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .btn-back::before {
+            content: '◄';
+            font-size: 14px;
+            color: var(--gold);
+        }
+
+        .btn-back:hover {
+            background: linear-gradient(90deg, rgba(201,165,88,0.3), rgba(20,12,6,0.7));
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 20px rgba(232,200,120,0.5);
+            transform: translateX(-4px);
+        }
+
+        /* ==================== BOTÕES GENÉRICOS ==================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 14px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.25s;
+            border: 2px solid;
+            text-align: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(0.6);
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, #f4d97a 0%, #d4af37 45%, #a8801c 100%);
+            color: var(--ink);
+            border-color: #4a3612;
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.5),
+                inset 0 -3px 6px rgba(107,79,30,0.5),
+                inset 0 2px 4px rgba(255,255,255,0.5),
+                0 4px 15px rgba(0,0,0,0.7),
+                0 0 20px rgba(232,200,120,0.3);
+            text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.6),
+                inset 0 -3px 6px rgba(107,79,30,0.5),
+                inset 0 2px 4px rgba(255,255,255,0.6),
+                0 6px 20px rgba(0,0,0,0.8),
+                0 0 35px rgba(232,200,120,0.7);
+        }
+
+        .btn-secondary {
+            background: rgba(0,0,0,0.5);
+            color: var(--stone);
+            border-color: var(--gold-dark);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(201,165,88,0.15);
+            color: var(--gold-bright);
+            border-color: var(--gold-bright);
+        }
+
+        /* Botão pequeno dourado (comprar) */
+        .btn-gold {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: 2px;
+            padding: 8px 16px;
+            background: linear-gradient(180deg, #f4d97a 0%, #d4af37 45%, #a8801c 100%);
+            color: var(--ink);
+            border: 2px solid #4a3612;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.5),
+                inset 0 -3px 6px rgba(107,79,30,0.5),
+                inset 0 2px 4px rgba(255,255,255,0.5),
+                0 4px 12px rgba(0,0,0,0.7);
+            text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+            white-space: nowrap;
+        }
+
+        .btn-gold:hover:not(:disabled) {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.6),
+                0 6px 18px rgba(0,0,0,0.85),
+                0 0 30px rgba(232,200,120,0.7);
+        }
+
+        .btn-gold:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            filter: grayscale(0.6);
+        }
+
+        /* Moeda pequena dentro de botão */
+        .coin {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffe27a, #d4af37 55%, #8b6914);
+            border: 1px solid #4a3612;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #4a3612;
+            font-weight: 900;
+            box-shadow: inset 0 -1px 2px rgba(0,0,0,0.3), 0 0 6px rgba(232,200,120,0.5);
+        }
+
+        .coin.silver {
+            background: radial-gradient(circle at 35% 30%, #f0f0f0, #b0b0b0 55%, #606060);
+            border-color: #404040;
+        }
+
+        /* ==================== ÍCONE BOTÃO ==================== */
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid var(--gold-dark);
+            color: var(--gold-bright);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: rgba(201,165,88,0.25);
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 20px rgba(232,200,120,0.5);
+            transform: scale(1.08);
+        }
+
+        /* ==================== TOAST ==================== */
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 30px;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+            border-radius: 8px;
+            z-index: 2000;
+            animation: toastSlide 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+        }
+
+        .toast.success {
+            background: linear-gradient(180deg, #2e7d32, #1b5e20);
+            border: 2px solid #a5d6a7;
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8), 0 0 30px rgba(102,187,106,0.6);
+        }
+
+        .toast.error {
+            background: linear-gradient(180deg, #c62828, #6b0f0f);
+            border: 2px solid #ff8a80;
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8), 0 0 30px rgba(198,40,40,0.6);
+        }
+
+        .toast.info {
+            background: linear-gradient(180deg, #1565c0, #0d3a6b);
+            border: 2px solid #8fd4ff;
+            color: #fff;
+        }
+
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* ==================== MODAL GENÉRICO ==================== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(6px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.25s;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal {
+            width: 100%;
+            max-width: 500px;
+            background: linear-gradient(180deg, rgba(20,12,6,0.98), rgba(10,6,3,0.98));
+            border: 1px solid rgba(201,165,88,0.5);
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow:
+                0 20px 60px rgba(0,0,0,0.9),
+                0 0 60px rgba(232,200,120,0.2);
+            animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 20px;
+            letter-spacing: 3px;
+            color: var(--gold-bright);
+            text-shadow: 0 0 20px rgba(232,200,120,0.5);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-desc {
+            text-align: center;
+            color: var(--stone);
+            font-size: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .modal-actions .btn { flex: 1; }
+
+        /* ==================== CARD DE CARTA (padrão reutilizável) ==================== */
+        .game-card {
+            aspect-ratio: 132 / 188;
+            border-radius: 10px;
+            background: var(--marble);
+            border: 3px solid var(--gold-dark);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+            box-shadow:
+                0 6px 18px rgba(0,0,0,0.8),
+                inset 0 0 0 1px rgba(255,255,255,0.4);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.04);
+            z-index: 10;
+            box-shadow:
+                0 16px 35px rgba(0,0,0,0.95),
+                0 0 35px rgba(232,200,120,0.5),
+                inset 0 0 0 1px rgba(255,255,255,0.5);
+        }
+
+        /* Raridade */
+        .game-card[data-rarity="comum"]    { border-color: #6b4f1e; }
+        .game-card[data-rarity="rara"]     { border-color: #2196f3; box-shadow: 0 6px 18px rgba(0,0,0,0.8), 0 0 12px rgba(33,150,243,0.4), inset 0 0 0 1px rgba(255,255,255,0.4); }
+        .game-card[data-rarity="epica"]    { border-color: #9c27b0; box-shadow: 0 6px 18px rgba(0,0,0,0.8), 0 0 12px rgba(156,39,176,0.5), inset 0 0 0 1px rgba(255,255,255,0.4); }
+        .game-card[data-rarity="lendaria"] { border-color: #d4af37; box-shadow: 0 6px 18px rgba(0,0,0,0.8), 0 0 20px rgba(212,175,55,0.6), inset 0 0 0 1px rgba(255,255,255,0.5); }
+
+        .game-card[data-rarity="lendaria"]::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 10px;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,215,100,0.4) 50%, transparent 70%);
+            background-size: 200% 200%;
+            animation: shimmer 3s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .game-card .card-cost {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #8fd4ff 0%, #2196f3 50%, #0d3a6b 100%);
+            border: 2px solid #0d3a6b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 15px;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+            z-index: 5;
+            box-shadow:
+                inset 0 -3px 5px rgba(0,0,0,0.4),
+                inset 0 2px 4px rgba(255,255,255,0.6),
+                0 2px 6px rgba(0,0,0,0.8);
+        }
+
+        .game-card .card-portrait {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            height: 55%;
+            border-radius: 5px;
+            background: radial-gradient(circle at 50% 40%, #6b4f1e, #2c1810 90%);
+            border: 1px solid var(--gold-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+            overflow: hidden;
+        }
+
+        .game-card .card-name {
+            position: absolute;
+            bottom: 22%;
+            left: 6px;
+            right: 6px;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 11px;
+            color: var(--ink);
+            letter-spacing: 0.5px;
+            line-height: 1.1;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .game-card .card-type {
+            position: absolute;
+            bottom: 15%;
+            left: 6px;
+            right: 6px;
+            text-align: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 10px;
+            color: #5a4a32;
+        }
+
+        .game-card .card-stats {
+            position: absolute;
+            bottom: 5px;
+            left: 6px;
+            right: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-badge {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 12px;
+            border: 2px solid var(--gold-dark);
+            box-shadow:
+                inset 0 -2px 4px rgba(0,0,0,0.4),
+                0 1px 4px rgba(0,0,0,0.7);
+        }
+
+        .stat-badge.atk {
+            background: radial-gradient(circle at 35% 30%, #f8e08a, #d4af37 55%, #8b6914);
+            color: var(--ink);
+        }
+
+        .stat-badge.hp {
+            background: radial-gradient(circle at 35% 30%, #ff8a80, #c62828 55%, #6b0f0f);
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        /* ==================== RESPONSIVO ==================== */
+        @media (max-width: 900px) {
+            .app-header { padding: 12px 18px; }
+            .app-header .profile-name { font-size: 13px; }
+            .app-header .avatar-ring { width: 44px; height: 44px; font-size: 22px; }
+            .currency { padding: 4px 10px 4px 4px; }
+            .currency-icon { width: 28px; height: 28px; font-size: 13px; }
+            .currency-amount { font-size: 12px; }
+            .page-title { letter-spacing: 6px; }
+            .page-subtitle-1 { letter-spacing: 3px; }
+        }
+
+        @media (max-width: 700px) {
+            .btn-back {
+                position: static;
+                margin: 0 auto 20px;
+                display: inline-flex;
+            }
+            .page-title-section { padding-top: 16px; }
+        }
+    </style>
+
+    <!-- ============================================================
+         CSS ESPECÍFICO DE CADA PÁGINA
+    ============================================================ -->
+    {% block page_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Fundo global -->
+    <div class="bg-layer"></div>
+
+    <!-- CSRF token global (Django) -->
+    {% csrf_token %}
+
+    <!-- Header global (pode ser ocultado com {% block show_header %}{% endblock %}) -->
+    {% block header %}
+    <header class="app-header">
+        <div class="profile">
+            <div class="avatar-ring">👤</div>
+            <div class="profile-info">
+                <div class="profile-name">{{ request.user.username|default:"Player1" }}</div>
+                <div class="profile-level">
+                    <span class="lvl-badge">{{ player.level|default:15 }}</span>
+                    <div class="xp-bar">
+                        <div class="xp-bar-fill" style="width: {{ player.xp_percent|default:60 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="currencies">
+            <div class="currency">
+                <div class="currency-icon dracma">💠</div>
+                <div class="currency-info">
+                    <span class="currency-label">DRACMAS</span>
+                    <span class="currency-amount" id="dracmasAmount">{{ wallet.dracmas|default:0 }}</span>
+                </div>
+            </div>
+            <div class="currency">
+                <div class="currency-icon ouro">⚱</div>
+                <div class="currency-info">
+                    <span class="currency-label">OURO</span>
+                    <span class="currency-amount" id="ouroAmount">{{ wallet.ouro|default:0 }}</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    {% endblock %}
+
+    <!-- ============================================================
+         CONTEÚDO ESPECÍFICO DE CADA PÁGINA
+    ============================================================ -->
+    {% block content %}{% endblock %}
+
+    <!-- ============================================================
+         JS GLOBAL — utilidades compartilhadas
+    ============================================================ -->
+    <script>
+        /* ============================================================
+           CSRF TOKEN (Django)
+        ============================================================ */
+        function getCsrfToken() {
+            const m = document.cookie.match(/csrftoken=([^;]+)/);
+            if (m) return m[1];
+            const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            return input ? input.value : '';
+        }
+
+        /* ============================================================
+           TOAST GLOBAL
+        ============================================================ */
+        function mostrarToast(msg, tipo = 'info') {
+            const t = document.createElement('div');
+            t.className = 'toast ' + tipo;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2400);
+        }
+
+        /* ============================================================
+           FETCH COM CSRF (helper)
+        ============================================================ */
+        async function postJSON(url, data) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || `HTTP ${response.status}`);
+            }
+
+            return response.json();
+        }
+
+        /* ============================================================
+           ATUALIZAR MOEDAS NO HEADER
+        ============================================================ */
+        function updateWallet(wallet) {
+            const d = document.getElementById('dracmasAmount');
+            const o = document.getElementById('ouroAmount');
+            if (d && wallet.dracmas !== undefined) d.textContent = wallet.dracmas;
+            if (o && wallet.ouro !== undefined)    o.textContent = wallet.ouro;
+        }
+    </script>
+
+    <!-- ============================================================
+         JS ESPECÍFICO DE CADA PÁGINA
+    ============================================================ -->
+    {% block page_js %}{% endblock %}
+</body>
+</html>
