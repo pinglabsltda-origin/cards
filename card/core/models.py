@@ -115,7 +115,9 @@ class Deck(models.Model):
         return False
 
     def card_count(self):
-        return DeckCard.objects.filter(deck=self).count()
+        """Total de cartas no deck (soma das quantidades, não só as linhas)"""
+        total = DeckCard.objects.filter(deck=self).aggregate(total=models.Sum('quantity'))['total']
+        return total or 0
 
     def is_valid(self):
         """Deck must have at least 20 cards (and at most 30) to battle"""

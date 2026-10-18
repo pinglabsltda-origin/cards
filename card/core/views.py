@@ -19,10 +19,11 @@ def board_view(request):
     """View for the game board that passes initial card data to template"""
     # Get the player's deck (assuming they have one)
     player_deck = None
-    try:
-        player_deck = Deck.objects.get(owner=request.user, god__isnull=False)
-    except Deck.DoesNotExist:
-        # Create a default deck for testing
+    user_decks = list(Deck.objects.filter(owner=request.user))
+    # Usa o deck com mais cartas (o deck que o jogador montou para batalhar)
+    player_deck = max(user_decks, key=lambda d: d.card_count(), default=None)
+    if player_deck is None:
+        # Cria um deck padrão para testes
         god = God.objects.first()  # Zeus
         player_deck = Deck.objects.create(
             owner=request.user,
@@ -209,7 +210,7 @@ def my_cards_view(request):
     cards_json = []
     for c in all_cards:
         cards_json.append({
-            'id': c.id,
+            'id': str(c.id),
             'nome': c.name,
             'tipo': c.card_type.name,
             'custo': c.cost,
@@ -217,7 +218,7 @@ def my_cards_view(request):
             'hp': c.health,
             'icone': '🛡️', # Default ou mapear via c.image_url se for emoji
             'raridade': c.rarity.name,
-            'coletadas': 2, # Por enquanto damos 2 de cada para teste
+            'coletadas': 3, # O jogador possui até 3 cópias de cada carta
         })
 
     context = {

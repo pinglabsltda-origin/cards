@@ -425,9 +425,10 @@
 
         <div class="filter-group" id="filterType">
             <button class="filter-btn active" data-value="all">TODAS</button>
-            <button class="filter-btn" data-value="Deus">DEUSES</button>
-            <button class="filter-btn" data-value="Herói">HERÓIS</button>
-            <button class="filter-btn" data-value="Lenda">LENDAS</button>
+            <button class="filter-btn" data-value="Hero">HERÓIS</button>
+            <button class="filter-btn" data-value="Monstro">MONSTROS</button>
+            <button class="filter-btn" data-value="Relic">RELÍQUIAS</button>
+            <button class="filter-btn" data-value="Spell">FEITIÇOS</button>
         </div>
 
         <div class="filter-group" id="filterCost">
@@ -487,7 +488,10 @@
 // const CARDS_DB = {{ all_cards_json|safe }};
 // const CURRENT_DECK = {{ current_deck_json|safe }};
 
-// ===== FALLBACK local (remova depois) =====
+window.CARDS_DB = {{ all_cards_json|default:"[]"|safe }};
+window.CURRENT_DECK = {{ current_deck_json|default:"{}"|safe }};
+
+// ===== FALLBACK local (usado só se o servidor não enviar cartas) =====
 const CARDS_DB = window.CARDS_DB ?? [
     { id:'hoplita',    nome:'Hoplita',    tipo:'Herói', custo:1, atk:1, hp:2, icone:'🛡️', raridade:'comum',    coletadas:2 },
     { id:'arqueiro',   nome:'Arqueiro',   tipo:'Herói', custo:2, atk:2, hp:1, icone:'🏹', raridade:'comum',    coletadas:2 },
@@ -523,7 +527,7 @@ const state = {
     busca: '',
     MAX_DECK: 30,
     MIN_DECK: 20,
-    MAX_COPIAS: 2,
+    MAX_COPIAS: 3,
 };
 
 /* ============================================================
